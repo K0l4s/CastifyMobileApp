@@ -16,7 +16,7 @@ const SplashScreen = () => {
 
     loadData().then(() => {
       const timer = setTimeout(() => {
-        navigation.navigate('Home' as never);
+        navigation.navigate('Main' as never);
       }, 3000); // 3 secs
 
       return () => clearTimeout(timer); // Clear timer when component unmounts
