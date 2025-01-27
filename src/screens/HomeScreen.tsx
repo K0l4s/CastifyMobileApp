@@ -1,10 +1,20 @@
 import React from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import { View, FlatList, StyleSheet } from 'react-native';
+import Header from '../components/header/Header';
+import PodcastItem from '../components/podcast/PodcastItem';
 
 const HomeScreen = () => {
+  const data = Array(10).fill({}); // Fake data
+
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Welcome to Home Screen!</Text>
+      <Header />
+      <FlatList
+        data={data}
+        renderItem={() => <PodcastItem />}
+        keyExtractor={(item, index) => index.toString()}
+        contentContainerStyle={styles.list}
+      />
     </View>
   );
 };
@@ -12,14 +22,10 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#f9f9f9',
   },
-  text: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+  list: {
+    padding: 10,
   },
 });
 
