@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, Modal } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Modal, Button } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import SearchModal from '../modals/SearchModal';
+import LoginModal from '../modals/LoginModal';
 
 const appLogo = require('../../assets/images/logo.png');
 
 const Header = () => {
-  const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
 
+  const toggleModal = () => {
+    setIsLoginModalVisible(!isLoginModalVisible);
+  };
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
+  
   return (
     <>
     <View style={styles.header}>
@@ -26,16 +32,25 @@ const Header = () => {
         </TouchableOpacity>
 
         {/* Ảnh đại diện */}
-        <TouchableOpacity style={styles.iconButton}>
+        {/* <TouchableOpacity style={styles.iconButton}>
           <Image
             source={{
               uri: 'https://i.redd.it/snoovatar/avatars/0cec69b2-0fb5-4185-b4f1-56c069511f8a.png',
             }}
             style={styles.profilePic}
           />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
+        <Button title="Login" onPress={toggleModal} />
+        
       </View>
+      
     </View>
+    {/* Login Modal */}
+    <LoginModal 
+        isOpen={isLoginModalVisible} 
+        onClose={toggleModal} 
+        trigger={toggleModal} 
+      />
     {/* Modal tìm kiếm */}
     <SearchModal
         visible={isSearchVisible}
