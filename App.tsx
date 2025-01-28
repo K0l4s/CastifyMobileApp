@@ -3,8 +3,11 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import SplashScreen from './src/screens/SplashScreen';
 import MainScreen from './src/screens/MainScreen';
+import { RootParamList } from './src/type/navigationType';
 
-const Stack = createStackNavigator();
+
+
+const Stack = createStackNavigator<RootParamList>();
 
 // Main App
 const App = () => {

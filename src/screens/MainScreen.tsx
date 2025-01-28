@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import HomeScreen from '../screens/HomeScreen';
 import FollowingScreen from './FollowingScreen';
 import CreateScreen from './CreateScreen';
@@ -7,7 +7,6 @@ import InboxScreen from './InboxScreen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { enableScreens } from 'react-native-screens';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { Text } from 'react-native';
 
