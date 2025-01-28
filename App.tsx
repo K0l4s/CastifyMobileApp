@@ -4,6 +4,8 @@ import {createStackNavigator} from '@react-navigation/stack';
 import SplashScreen from './src/screens/SplashScreen';
 import MainScreen from './src/screens/MainScreen';
 import { RootParamList } from './src/type/navigationType';
+import { Provider } from 'react-redux';
+import { store } from './src/redux/store';
 
 
 
@@ -12,12 +14,14 @@ const Stack = createStackNavigator<RootParamList>();
 // Main App
 const App = () => {
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{headerShown: false}}>
-        <Stack.Screen name="Splash" component={SplashScreen} />
-        <Stack.Screen name="Main" component={MainScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <Provider store={store}>
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{headerShown: false}}>
+          <Stack.Screen name="Splash" component={SplashScreen} />
+          <Stack.Screen name="Main" component={MainScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </Provider>
   );
 };
 
