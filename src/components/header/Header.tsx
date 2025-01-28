@@ -1,21 +1,47 @@
-import React from 'react';
-import { View, Text, TextInput, Image, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Modal } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
+import SearchModal from '../modals/SearchModal';
 
 const appLogo = require('../../assets/images/logo.png');
 
 const Header = () => {
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
+
   return (
+    <>
     <View style={styles.header}>
-      <Text style={styles.logo}>CASTIFY</Text>
-      <TextInput
-        placeholder="Search"
-        style={styles.searchInput}
-      />
-      <Image
-        source={appLogo}
-        style={styles.profilePic}
-      />
+      {/* Logo và tên ứng dụng */}
+      <View style={styles.leftSection}>
+        <Image source={appLogo} style={styles.logoImage} />
+        <Text style={styles.logoText}>CASTIFY</Text>
+      </View>
+
+      <View style={styles.rightSection}>
+        {/* Nút tìm kiếm */}
+        <TouchableOpacity
+          style={styles.iconButton}
+          onPress={() => setIsSearchVisible(true)}>
+          <Icon name="search" size={22} color="#0c0461" />
+        </TouchableOpacity>
+
+        {/* Ảnh đại diện */}
+        <TouchableOpacity style={styles.iconButton}>
+          <Image
+            source={{
+              uri: 'https://i.redd.it/snoovatar/avatars/0cec69b2-0fb5-4185-b4f1-56c069511f8a.png',
+            }}
+            style={styles.profilePic}
+          />
+        </TouchableOpacity>
+      </View>
     </View>
+    {/* Modal tìm kiếm */}
+    <SearchModal
+        visible={isSearchVisible}
+        onClose={() => setIsSearchVisible(false)}
+      />
+    </>
   );
 };
 
@@ -23,26 +49,39 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 10,
     backgroundColor: '#fff',
     elevation: 2,
   },
-  logo: {
+  leftSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  rightSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  logoImage: {
+    width: 35,
+    height: 35,
+    marginRight: 8,
+  },
+  logoText: {
     fontWeight: 'bold',
     fontSize: 18,
-    flex: 1,
+    color: '#0c0461'
   },
-  searchInput: {
-    flex: 3,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 20,
-    padding: 8,
-    marginHorizontal: 10,
+  iconButton: {
+    padding: 5,
   },
   profilePic: {
-    width: 40,
-    height: 40,
+    width: 30,
+    height: 30,
+    padding: 5,
     borderRadius: 20,
+    resizeMode: 'contain',
   },
 });
 

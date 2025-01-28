@@ -1,12 +1,14 @@
 import React, {useEffect} from 'react';
 import {View, Image, StyleSheet, ActivityIndicator} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootParamList } from '../type/navigationType';
 
 // Import images
 const appLogo = require('../assets/images/logo.png');
 
 const SplashScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<RootParamList>>();
 
   useEffect(() => {
     const loadData = async () => {
@@ -16,7 +18,7 @@ const SplashScreen = () => {
 
     loadData().then(() => {
       const timer = setTimeout(() => {
-        navigation.navigate('Main' as never);
+        navigation.replace('Main');
       }, 3000); // 3 secs
 
       return () => clearTimeout(timer); // Clear timer when component unmounts
