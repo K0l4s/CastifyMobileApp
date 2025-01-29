@@ -14,6 +14,8 @@ import Icon from "react-native-vector-icons/Ionicons";
 import { useDispatch } from "react-redux";
 import Toast from 'react-native-toast-message';
 import AuthenticateService from "../../services/authenticateService";
+import UserService from "../../services/userService";
+import { setUser } from "../../redux/reducer/authSlice";
 
 interface DefaultModalProps {
   trigger: () => void;
@@ -44,6 +46,8 @@ const LoginModal = ({ isOpen, onClose, trigger }: DefaultModalProps) => {
 
     try {
       await AuthenticateService.authenticate(formData, dispatch);
+      const data = await UserService.getUserByToken();
+      dispatch(setUser(data));
       onClose();
     } catch (err: any) {
       setErrorMessage(err.response?.data?.message || "Login failed. Please try again.");
