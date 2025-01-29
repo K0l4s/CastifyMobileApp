@@ -40,7 +40,10 @@ const Header = () => {
             style={styles.profilePic}
           />
         </TouchableOpacity> */}
-        <Button title="Login" onPress={toggleModal} />
+        <TouchableOpacity onPress={toggleModal}>
+          <Text style={styles.loginBtn}>Login</Text>
+        </TouchableOpacity>
+        
         
       </View>
       
@@ -98,6 +101,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     resizeMode: 'contain',
   },
+  loginBtn: {
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    borderRadius: 5,
+    backgroundColor: '#104fb5',
+    color: 'white',
+  }
 });
 
 export default Header;

@@ -6,7 +6,7 @@ import MainScreen from './src/screens/MainScreen';
 import { RootParamList } from './src/type/navigationType';
 import { Provider } from 'react-redux';
 import { store } from './src/redux/store';
-
+import Toast from 'react-native-toast-message';
 
 
 const Stack = createStackNavigator<RootParamList>();
@@ -20,6 +20,7 @@ const App = () => {
           <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Main" component={MainScreen} />
         </Stack.Navigator>
+        <Toast />
       </NavigationContainer>
     </Provider>
   );
