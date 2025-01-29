@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Modal,
   View,
@@ -13,8 +13,9 @@ import {
 import Icon from "react-native-vector-icons/Ionicons";
 import { useDispatch } from "react-redux";
 import Toast from 'react-native-toast-message';
-import { axiosInstance } from "../../utils/axiosInstance";
-import { login, setUser } from "../../redux/reducer/authSlice";
+import AuthenticateService from "../../services/authenticateService";
+import UserService from "../../services/userService";
+import { setUser } from "../../redux/reducer/authSlice";
 
 interface DefaultModalProps {
   trigger: () => void;
@@ -44,36 +45,12 @@ const LoginModal = ({ isOpen, onClose, trigger }: DefaultModalProps) => {
     setErrorMessage("");
 
     try {
-      Toast.show({
-        type: 'info',
-        text1: 'Logging in...',
-      });
-
-      const response = await axiosInstance.post("/api/v1/auth/authenticate", formData);
-
-      if (response.status === 200) {
-        const { user, token } = response.data;
-
-        dispatch(login());
-        dispatch(setUser(user));
-
-        Toast.show({
-          type: 'success',
-          text1: 'Login successful!',
-        });
-        onClose();
-      } else {
-        throw new Error("Login failed");
-      }
+      await AuthenticateService.authenticate(formData, dispatch);
+      const data = await UserService.getUserByToken();
+      dispatch(setUser(data));
+      onClose();
     } catch (err: any) {
-      console.error("Login error:", err.message);
-      setErrorMessage(
-        err.response?.data?.message || "Login failed. Please try again."
-      );
-      Toast.show({
-        type: 'error',
-        text1: err.response?.data?.message || "An error occurred.",
-      });
+      setErrorMessage(err.response?.data?.message || "Login failed. Please try again.");
     } finally {
       setIsLoading(false);
     }

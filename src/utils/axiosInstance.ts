@@ -1,7 +1,7 @@
 import axios from "axios";
 import * as Keychain from "react-native-keychain";
-
-export const BaseApi = "http://192.168.1.7:9090"; // Your IP address
+import { API_URL } from "@env";
+export const BaseApi = API_URL; // Your IP address
 
 export const axiosInstance = axios.create({
   baseURL: BaseApi,
@@ -22,9 +22,8 @@ axiosInstanceAuth.interceptors.request.use(
   async (config) => {
     try {
       const credentials = await Keychain.getGenericPassword(); // get token from Keychain
-      if (credentials) {
-        config.headers.Authorization = `Bearer ${credentials.password}`; // add token to request header
-      }
+      const tokenData = credentials ? JSON.parse(credentials.password) : null;
+      config.headers.Authorization = `Bearer ${tokenData.access_token}`; // add token to request header
     } catch (error) {
       console.error("Error retrieving token from Keychain:", error);
     }

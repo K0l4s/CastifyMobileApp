@@ -3,10 +3,14 @@ import { View, Text, Image, TouchableOpacity, StyleSheet, Modal, Button } from '
 import Icon from 'react-native-vector-icons/Ionicons';
 import SearchModal from '../modals/SearchModal';
 import LoginModal from '../modals/LoginModal';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../redux/store';
 
 const appLogo = require('../../assets/images/logo.png');
 
 const Header = () => {
+  const user = useSelector((state: RootState) => state.auth.user);
+
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
 
   const toggleModal = () => {
@@ -32,16 +36,20 @@ const Header = () => {
         </TouchableOpacity>
 
         {/* Ảnh đại diện */}
-        {/* <TouchableOpacity style={styles.iconButton}>
+        {user ? (
+          <TouchableOpacity style={styles.iconButton}>
           <Image
             source={{
-              uri: 'https://i.redd.it/snoovatar/avatars/0cec69b2-0fb5-4185-b4f1-56c069511f8a.png',
+              uri: user.avatarUrl,
             }}
             style={styles.profilePic}
           />
-        </TouchableOpacity> */}
-        <Button title="Login" onPress={toggleModal} />
-        
+        </TouchableOpacity>
+        ) : (
+          <TouchableOpacity onPress={toggleModal}>
+            <Text style={styles.loginBtn}>Login</Text>
+          </TouchableOpacity>
+        )}
       </View>
       
     </View>
@@ -98,6 +106,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     resizeMode: 'contain',
   },
+  loginBtn: {
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    borderRadius: 5,
+    backgroundColor: '#104fb5',
+    color: 'white',
+  }
 });
 
 export default Header;
