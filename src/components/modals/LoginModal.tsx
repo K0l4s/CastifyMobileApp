@@ -41,8 +41,19 @@ const LoginModal = ({ isOpen, onClose, trigger }: DefaultModalProps) => {
   };
 
   const handleLogin = async () => {
-    setIsLoading(true);
     setErrorMessage("");
+    
+    if (!formData.email || !formData.password) {
+      setErrorMessage("Please fill in all fields.");
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      setErrorMessage("Password must be at least 8 characters long.");
+      return;
+    }
+    
+    setIsLoading(true);
 
     try {
       await AuthenticateService.authenticate(formData, dispatch);
