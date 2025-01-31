@@ -1,21 +1,24 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import { Podcast } from '../../models/PodcastModel';
+import DateUtil from '../../utils/dateUtil';
+import { defaultAvatar } from '../../utils/fileUtil';
 
 interface PodcastItemProps {
   podcast: Podcast;
 }
 
 const PodcastItem: React.FC<PodcastItemProps> = ({ podcast }) => {
+
   return (
     <View style={styles.itemContainer}>
       <Image source={{ uri: podcast.thumbnailUrl || '' }} style={styles.thumbnail} />
       <View style={styles.infoContainer}>
-        <Image source={{ uri: podcast.user.avatarUrl || '' }} style={styles.avatar} />
+      <Image source={podcast.user.avatarUrl ? { uri: podcast.user.avatarUrl } : defaultAvatar} style={styles.avatar} />
         <View style={styles.textContainer}>
           <Text style={styles.title}>{podcast.title}</Text>
           <Text style={styles.subtitle}>
-            {podcast.user.username} · {podcast.views} views · {podcast.createdDay}
+            {podcast.user.fullname} · {podcast.views} views · {DateUtil.formatDateToTimeAgo(new Date(podcast.createdDay))}
           </Text>
         </View>
       </View>
@@ -37,6 +40,7 @@ const styles = StyleSheet.create({
   thumbnail: {
     width: '100%',
     height: 200,
+    resizeMode: 'cover',
   },
   infoContainer: {
     flexDirection: 'row',
@@ -47,20 +51,21 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
   },
   textContainer: {
     flex: 1,
   },
   title: {
     fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 5,
+    fontSize: 14,
     color: '#333',
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#666',
   },
 });
 
-export default PodcastItem;
+export default React.memo(PodcastItem);
