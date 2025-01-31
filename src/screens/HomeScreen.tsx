@@ -4,15 +4,19 @@ import Header from '../components/header/Header';
 import PodcastItem from '../components/podcast/PodcastItem';
 import { Podcast } from '../models/PodcastModel';
 import PodcastService from '../services/podcastService';
+import GenreService from '../services/genreService';
+import GenresTabNavigation from '../components/podcast/GenresTabNavigation';
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
 const HomeScreen = () => {
   const [podcasts, setPodcasts] = useState<Podcast[]>([]);
+  const [genres, setGenres] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
+  const [selectedTab, setSelectedTab] = useState('All');
 
   const scrollY = useRef(new Animated.Value(0)).current;
   const lastScrollY = useRef(0);
@@ -32,6 +36,18 @@ const HomeScreen = () => {
   };
 
   useEffect(() => {
+    const fetchGenres = async () => {
+      try {
+        const response = await GenreService.getGenres();
+        setGenres(response);
+      } catch (error) {
+        console.error('Error retrieving genres from server', error);
+      }
+    };
+    fetchGenres();
+  }, []);
+
+  useEffect(() => {
     fetchPodcasts(page);
   }, [page]);
 
@@ -40,6 +56,11 @@ const HomeScreen = () => {
       setIsFetchingMore(true);
       setPage((prevPage) => prevPage + 1);
     }
+  };
+
+  const handleTabSelect = (tab: string) => {
+    setSelectedTab(tab);
+    // Add logic to filter podcasts
   };
 
   scrollY.addListener(({ value }) => {
@@ -71,7 +92,12 @@ const HomeScreen = () => {
   return (
     <View style={styles.container}>
       <Animated.View style={[styles.headerContainer, animatedStyle]}>
-        <Header />
+        <Header 
+          selectedTab={selectedTab}
+          onSelectTab={handleTabSelect}
+          genres={genres}
+          animatedStyle={animatedStyle}
+        />
       </Animated.View>
 
       {loading ? (
@@ -79,20 +105,22 @@ const HomeScreen = () => {
           <ActivityIndicator size="large" color="#0000ff" />
         </View>
       ) : (
-        <AnimatedFlatList
-          data={podcasts}
-          renderItem={({ item }) => <PodcastItem podcast={item as Podcast} />}
-          keyExtractor={(item) => (item as Podcast).id}
-          contentContainerStyle={styles.list}
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-            { useNativeDriver: true }
-          )}
-          scrollEventThrottle={16}
-          onEndReached={handleLoadMore}
-          onEndReachedThreshold={0.5}
-          ListFooterComponent={isFetchingMore ? <ActivityIndicator size="small" color="#0000ff" /> : null}
-        />
+        <>
+          <AnimatedFlatList
+            data={podcasts}
+            renderItem={({ item }) => <PodcastItem podcast={item as Podcast} />}
+            keyExtractor={(item) => (item as Podcast).id}
+            contentContainerStyle={styles.list}
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+              { useNativeDriver: true }
+            )}
+            scrollEventThrottle={16}
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={isFetchingMore ? <ActivityIndicator size="small" color="#0000ff" /> : null}
+          />
+        </>
       )}
     </View>
   );
@@ -113,8 +141,11 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   list: {
-    paddingTop: 60,
+    paddingTop: 110,
     paddingHorizontal: 10,
+  },
+  genresTab: {
+    marginTop: 60,
   },
   loader: {
     flex: 1,

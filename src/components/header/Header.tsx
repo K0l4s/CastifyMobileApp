@@ -1,14 +1,22 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, Modal, Button } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Modal, Button, Animated } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import SearchModal from '../modals/SearchModal';
 import LoginModal from '../modals/LoginModal';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
+import GenresTabNavigation from '../podcast/GenresTabNavigation';
 
 const appLogo = require('../../assets/images/logo.png');
 
-const Header = () => {
+interface HeaderProps {
+  selectedTab: string;
+  onSelectTab: (tab: string) => void;
+  genres: { id: string; name: string }[];
+  animatedStyle: any;
+}
+
+const Header: React.FC<HeaderProps> = ({ selectedTab, onSelectTab, genres, animatedStyle }) => {
   const user = useSelector((state: RootState) => state.auth.user);
 
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
@@ -20,39 +28,47 @@ const Header = () => {
   
   return (
     <>
-    <View style={styles.header}>
-      {/* Logo và tên ứng dụng */}
-      <View style={styles.leftSection}>
-        <Image source={appLogo} style={styles.logoImage} />
-        <Text style={styles.logoText}>CASTIFY</Text>
-      </View>
+    <Animated.View style={[styles.headerContainer, animatedStyle]}>
+      <View style={styles.header}>
+        {/* Logo và tên ứng dụng */}
+        <View style={styles.leftSection}>
+          <Image source={appLogo} style={styles.logoImage} />
+          <Text style={styles.logoText}>CASTIFY</Text>
+        </View>
 
-      <View style={styles.rightSection}>
-        {/* Nút tìm kiếm */}
-        <TouchableOpacity
-          style={styles.iconButton}
-          onPress={() => setIsSearchVisible(true)}>
-          <Icon name="search" size={22} color="#0c0461" />
-        </TouchableOpacity>
-
-        {/* Ảnh đại diện */}
-        {user ? (
-          <TouchableOpacity style={styles.iconButton}>
-          <Image
-            source={{
-              uri: user.avatarUrl,
-            }}
-            style={styles.profilePic}
-          />
-        </TouchableOpacity>
-        ) : (
-          <TouchableOpacity onPress={toggleModal}>
-            <Text style={styles.loginBtn}>Login</Text>
+        <View style={styles.rightSection}>
+          {/* Nút tìm kiếm */}
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => setIsSearchVisible(true)}>
+            <Icon name="search" size={22} color="#0c0461" />
           </TouchableOpacity>
-        )}
+
+          {/* Ảnh đại diện */}
+          {user ? (
+            <TouchableOpacity style={styles.iconButton}>
+            <Image
+              source={{
+                uri: user.avatarUrl,
+              }}
+              style={styles.profilePic}
+            />
+          </TouchableOpacity>
+          ) : (
+            <TouchableOpacity onPress={toggleModal}>
+              <Text style={styles.loginBtn}>Login</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
-      
-    </View>
+
+      <GenresTabNavigation 
+        selectedTab={selectedTab}
+        onSelectTab={onSelectTab}
+        genres={genres} 
+        animatedStyle={animatedStyle}
+      />
+    </Animated.View>
     {/* Login Modal */}
     <LoginModal 
         isOpen={isLoginModalVisible} 
@@ -69,6 +85,11 @@ const Header = () => {
 };
 
 const styles = StyleSheet.create({
+  headerContainer: {
+    flexDirection: 'column',
+    backgroundColor: '#fff',
+    elevation: 2,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -105,6 +126,8 @@ const styles = StyleSheet.create({
     padding: 5,
     borderRadius: 20,
     resizeMode: 'contain',
+    borderColor: '#ddd',
+    borderWidth: 1
   },
   loginBtn: {
     paddingVertical: 5,
