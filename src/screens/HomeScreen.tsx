@@ -1,18 +1,37 @@
-import React, { useRef } from 'react';
-import { View, StyleSheet, Animated, FlatList } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, StyleSheet, Animated, FlatList, ActivityIndicator } from 'react-native';
 import Header from '../components/header/Header';
 import PodcastItem from '../components/podcast/PodcastItem';
+import { Podcast } from '../models/PodcastModel';
+import PodcastService from '../services/podcastService';
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 const HomeScreen = () => {
-  const data = Array(10).fill({}); // Fake data
+  const [podcasts, setPodcasts] = useState<Podcast[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const scrollY = useRef(new Animated.Value(0)).current;
   const lastScrollY = useRef(0);
   const scrollDirection = useRef<'up' | 'down'>('down');
 
+  // Gọi API để lấy danh sách podcast
+  useEffect(() => {
+    const fetchPodcasts = async () => {
+      try {
+        const response = await PodcastService.getRecentPodcasts(0, 10);
+        setPodcasts(response.content);
+      } catch (error) {
+        console.error('Error retrieving podcasts from server', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPodcasts();
+  }, []);
+
   // Header appearance animation
-  scrollY.addListener(({ value }) => {
+  scrollY.addListener(({value}) => {
     if (value > lastScrollY.current) {
       scrollDirection.current = 'down';
     } else {
@@ -34,8 +53,8 @@ const HomeScreen = () => {
   });
 
   const animatedStyle = {
-    transform: [{ translateY }],
-    opacity
+    transform: [{translateY}],
+    opacity,
   };
 
   return (
@@ -44,17 +63,23 @@ const HomeScreen = () => {
         <Header />
       </Animated.View>
 
-      <AnimatedFlatList
-        data={data}
-        renderItem={() => <PodcastItem />}
-        keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={styles.list}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true }
-        )}
-        scrollEventThrottle={16}
-      />
+      {loading ? (
+        <View style={styles.loader}>
+          <ActivityIndicator size="large" color="#0000ff" />
+        </View>
+      ) : (
+        <AnimatedFlatList
+          data={podcasts}
+          renderItem={({ item }) => <PodcastItem podcast={item as Podcast} />}
+          keyExtractor={(item) => (item as Podcast).id}
+          contentContainerStyle={styles.list}
+          onScroll={Animated.event(
+            [{nativeEvent: {contentOffset: {y: scrollY}}}],
+            {useNativeDriver: true},
+          )}
+          scrollEventThrottle={16}
+        />
+      )}
     </View>
   );
 };
@@ -76,6 +101,11 @@ const styles = StyleSheet.create({
   list: {
     paddingTop: 60,
     paddingHorizontal: 10,
+  },
+  loader: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 
