@@ -24,9 +24,18 @@ const ProfileScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
       <Image source={{ uri: user?.coverUrl }} style={styles.coverUrl} />
-      <Image source={{ uri: user?.avatarUrl }} style={styles.avatar} />
-      <Text style={styles.fullname}>{fullName}</Text>
-      <Text style={styles.username}>@{user?.username}</Text>
+      <View style={styles.profileContainer}>
+        <Image source={{ uri: user?.avatarUrl }} style={styles.avatar} />
+        <View style={styles.profileDetails}>
+          <Text style={styles.fullname}>{fullName}</Text>
+          <Text style={styles.username}>@{user?.username}</Text>
+          <Text style={styles.stats}>
+            <Text style={styles.statsText}>Followers: {user?.followers || "1.34 k"} </Text>
+            <Text style={styles.statsText}> • </Text>
+            <Text style={styles.statsText}>Podcasts: {user?.podcastCount || "120"}</Text>
+          </Text>
+        </View>
+      </View>
     </View>
   );
 };
@@ -49,12 +58,6 @@ const styles = StyleSheet.create({
   headerButton: {
     padding: 5,
   },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginTop: 20,
-  },
   coverUrl: {
     width: '90%',
     height: 150,
@@ -62,16 +65,36 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
     marginTop: 15,
   },
+  profileContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
+    width: '90%',
+  },
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 50,
+  },
+  profileDetails: {
+    marginLeft: 15,
+    flex: 1,
+  },
   fullname: {
-    marginTop: 10,
     fontSize: 18,
     fontWeight: 'bold',
   },
   username: {
-    marginTop: 5,
     fontSize: 14,
     fontWeight: 'semibold',
     fontStyle: 'italic',
+  },
+  stats: {
+    marginTop: 5,
+  },
+  statsText: {
+    fontSize: 14,
+    fontWeight: 'regular',
   },
 });
 
