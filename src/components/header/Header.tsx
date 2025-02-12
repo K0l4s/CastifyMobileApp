@@ -6,6 +6,9 @@ import LoginModal from '../modals/LoginModal';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
 import GenresTabNavigation from '../podcast/GenresTabNavigation';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootParamList } from '../../type/navigationType';
 
 const appLogo = require('../../assets/images/logo.png');
 
@@ -18,14 +21,17 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ selectedTab, onSelectTab, genres, animatedStyle }) => {
   const user = useSelector((state: RootState) => state.auth.user);
-
   const [isLoginModalVisible, setIsLoginModalVisible] = useState(false);
-
+  const navigation = useNavigation<StackNavigationProp<RootParamList>>();
   const toggleModal = () => {
     setIsLoginModalVisible(!isLoginModalVisible);
   };
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   
+  const handleAvatarPress = () => {
+    navigation.navigate('Profile');
+  }
+
   return (
     <>
     <Animated.View style={[styles.headerContainer, animatedStyle]}>
@@ -46,7 +52,9 @@ const Header: React.FC<HeaderProps> = ({ selectedTab, onSelectTab, genres, anima
 
           {/* Ảnh đại diện */}
           {user ? (
-            <TouchableOpacity style={styles.iconButton}>
+            <TouchableOpacity 
+              onPress={handleAvatarPress}
+              style={styles.iconButton}>
             <Image
               source={{
                 uri: user.avatarUrl,
