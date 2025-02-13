@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   list: {
-    paddingTop: 110,
+    paddingTop: 115,
     paddingHorizontal: 10,
   },
   genresTab: {

@@ -13,7 +13,10 @@ const PodcastItem: React.FC<PodcastItemProps> = ({ podcast }) => {
 
   return (
     <View style={styles.itemContainer}>
-      <Image source={{ uri: podcast.thumbnailUrl || '' }} style={styles.thumbnail} />
+      <View style={styles.thumbnailContainer}>
+        <Image source={{ uri: podcast.thumbnailUrl || '' }} style={styles.thumbnail} />
+        <Text style={styles.duration}>{DateUtil.formatTimeDuration(podcast.duration)}</Text>
+      </View>
       <View style={styles.infoContainer}>
       <Image source={podcast.user.avatarUrl ? { uri: podcast.user.avatarUrl } : defaultAvatar} style={styles.avatar} />
         <View style={styles.textContainer}>
@@ -41,10 +44,24 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowOffset: { width: 0, height: 2 },
   },
+  thumbnailContainer: {
+    position: 'relative',
+  },
   thumbnail: {
     width: '100%',
     height: 200,
     resizeMode: 'cover',
+  },
+  duration: {
+    position: 'absolute',
+    bottom: 5,
+    right: 5,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    color: '#fff',
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 5,
+    fontSize: 12,
   },
   infoContainer: {
     flexDirection: 'row',

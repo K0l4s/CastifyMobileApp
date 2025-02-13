@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    marginTop: 20,
+    marginTop: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
   },
