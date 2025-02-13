@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { Podcast } from '../../models/PodcastModel';
 import DateUtil from '../../utils/dateUtil';
 import { defaultAvatar } from '../../utils/fileUtil';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 interface PodcastItemProps {
   podcast: Podcast;
@@ -16,11 +17,14 @@ const PodcastItem: React.FC<PodcastItemProps> = ({ podcast }) => {
       <View style={styles.infoContainer}>
       <Image source={podcast.user.avatarUrl ? { uri: podcast.user.avatarUrl } : defaultAvatar} style={styles.avatar} />
         <View style={styles.textContainer}>
-          <Text style={styles.title}>{podcast.title}</Text>
+          <Text style={styles.title} numberOfLines={2} ellipsizeMode='tail'>{podcast.title}</Text>
           <Text style={styles.subtitle}>
             {podcast.user.fullname} · {podcast.views} views · {DateUtil.formatDateToTimeAgo(new Date(podcast.createdDay))}
           </Text>
         </View>
+        <TouchableOpacity>
+          <Icon name="ellipsis-vertical" size={20} color="#000" />
+        </TouchableOpacity>
       </View>
     </View>
   );

@@ -17,7 +17,7 @@ const App = () => {
   return (
     <Provider store={store}>
       <NavigationContainer>
-        <Stack.Navigator screenOptions={{headerShown: false}}>
+        <Stack.Navigator screenOptions={{headerShown: false, cardStyle: { backgroundColor: '#fff' }}}>
           <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Main" component={MainScreen} />
           <Stack.Screen name="Profile" component={ProfileScreen}/>
