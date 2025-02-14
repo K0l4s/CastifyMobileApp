@@ -1,17 +1,63 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Image, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootParamList } from '../type/navigationType';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { Podcast } from '../models/PodcastModel';
+import PodcastService from '../services/podcastService';
+import { FlatList } from 'react-native-gesture-handler';
+import PodcastItemMini from '../components/podcast/PodcastItemMini';
 
 const ProfileScreen: React.FC = () => {
   const user = useSelector((state: RootState) => state.auth.user);
   const navigation = useNavigation<StackNavigationProp<RootParamList>>();
+  const [selectedTab, setSelectedTab] = useState('Video');
+  const [myPodcasts, setMyPodcasts] = useState<Podcast[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const fullName = `${user?.lastName} ${user?.middleName} ${user?.firstName}`;
+
+  useEffect(() => {
+    if (selectedTab === 'Video') {
+      fetchMyPodcasts();
+    }
+  }, [selectedTab]);
+
+  const fetchMyPodcasts = async () => {
+    try {
+      const response = await PodcastService.getPodcastBySelf(0, 10);
+      setMyPodcasts(response.content);
+    } catch (error) {
+      console.error('Error retrieving my podcasts from server', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderTabContent = () => {
+    if (selectedTab === 'Video') {
+      return loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        <FlatList
+          data={myPodcasts}
+          renderItem={({ item }) => <PodcastItemMini podcast={item} />}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.listContent}
+          style={{ alignSelf: 'flex-start' }}
+        />
+      );
+    } else {
+      return (
+        <View style={styles.placeholderContainer}>
+          <Text style={styles.placeholderText}>No playlist available</Text>
+        </View>
+      );
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -19,23 +65,48 @@ const ProfileScreen: React.FC = () => {
         <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.headerButton} onPress={() => { /* Add your action here */ }}>
+        <TouchableOpacity style={styles.headerButton}>
           <Icon name="ellipsis-vertical" size={24} color="#000" />
         </TouchableOpacity>
       </View>
+
       <Image source={{ uri: user?.coverUrl }} style={styles.coverUrl} />
+
       <View style={styles.profileContainer}>
         <Image source={{ uri: user?.avatarUrl }} style={styles.avatar} />
         <View style={styles.profileDetails}>
           <Text style={styles.fullname}>{fullName}</Text>
           <Text style={styles.username}>@{user?.username}</Text>
           <Text style={styles.stats}>
-            <Text style={styles.statsText}>Followers: {user?.followers || "1.34 k"} </Text>
+            <Text style={styles.statsText}>{user?.followers || "1.34 k"} Followers </Text>
             <Text style={styles.statsText}> • </Text>
-            <Text style={styles.statsText}>Podcasts: {user?.podcastCount || "120"}</Text>
+            <Text style={styles.statsText}>{user?.podcastCount || "120"} Podcasts</Text>
           </Text>
         </View>
       </View>
+
+      <TouchableOpacity style={styles.editButton}>
+        <Text style={{fontWeight: "bold"}}>Edit your profile</Text>
+        <Icon name="pencil" size={20} color="#000" />
+      </TouchableOpacity>
+
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[styles.tabButton, selectedTab === 'Video' && styles.activeTabButton]}
+          onPress={() => setSelectedTab('Video')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'Video' && styles.activeTabText]}>Video</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tabButton, selectedTab === 'Playlist' && styles.activeTabButton]}
+          onPress={() => setSelectedTab('Playlist')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'Playlist' && styles.activeTabText]}>Playlist</Text>
+        </TouchableOpacity>
+      </View>
+
+      {renderTabContent()}
+
     </View>
   );
 };
@@ -61,7 +132,7 @@ const styles = StyleSheet.create({
   coverUrl: {
     width: '90%',
     height: 150,
-    borderRadius: 20,
+    borderRadius: 15,
     resizeMode: 'cover',
     marginTop: 15,
   },
@@ -96,6 +167,53 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'regular',
   },
+  editButton: {
+    width: '90%',
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: "center",
+    gap: 10,
+    backgroundColor: '#d4d4d4',
+    borderRadius: 15,
+    marginTop: 20,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    marginTop: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  tabButton: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  activeTabButton: {
+    borderBottomWidth: 2,
+    borderBottomColor: '#2647bf',
+  },
+  tabText: {
+    fontSize: 16,
+    color: '#666',
+  },
+  activeTabText: {
+    color: '#2647bf',
+    fontWeight: 'bold',
+  },
+  listContent: {
+    width: '100%',
+    paddingHorizontal: 10,
+  },
+  placeholderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderText: {
+    fontSize: 18,
+    color: '#666',
+  }
 });
 
 export default ProfileScreen;

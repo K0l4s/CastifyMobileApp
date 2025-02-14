@@ -2,15 +2,13 @@ import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { Podcast } from '../../models/PodcastModel';
 import DateUtil from '../../utils/dateUtil';
-import { defaultAvatar } from '../../utils/fileUtil';
 import Icon from 'react-native-vector-icons/Ionicons';
 
-interface PodcastItemProps {
+interface PodcastItemMiniProps {
   podcast: Podcast;
 }
 
-const PodcastItem: React.FC<PodcastItemProps> = ({ podcast }) => {
-
+const PodcastItemMini: React.FC<PodcastItemMiniProps> = ({ podcast }) => {
   return (
     <View style={styles.itemContainer}>
       <View style={styles.thumbnailContainer}>
@@ -18,38 +16,34 @@ const PodcastItem: React.FC<PodcastItemProps> = ({ podcast }) => {
         <Text style={styles.duration}>{DateUtil.formatTimeDuration(podcast.duration)}</Text>
       </View>
       <View style={styles.infoContainer}>
-      <Image source={podcast.user.avatarUrl ? { uri: podcast.user.avatarUrl } : defaultAvatar} style={styles.avatar} />
         <View style={styles.textContainer}>
-          <Text style={styles.title} numberOfLines={2} ellipsizeMode='tail'>{podcast.title}</Text>
+          <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
+              {podcast.title}
+          </Text>
           <Text style={styles.subtitle}>
-            {podcast.user.fullname} · {podcast.views} views · {DateUtil.formatDateToTimeAgo(new Date(podcast.createdDay))}
+            {podcast.views} views · {DateUtil.formatDateToTimeAgo(new Date(podcast.createdDay))}
           </Text>
         </View>
-        <TouchableOpacity>
-          <Icon name="ellipsis-vertical" size={20} color="#000" />
-        </TouchableOpacity>
       </View>
+      <TouchableOpacity style={styles.menuBtn}>
+        <Icon name="ellipsis-vertical" size={20} color="#000" />
+      </TouchableOpacity>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   itemContainer: {
+    flexDirection: 'row',
     marginVertical: 10,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    overflow: 'hidden',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowOffset: { width: 0, height: 2 },
+    justifyContent: 'space-around',
   },
   thumbnailContainer: {
     position: 'relative',
   },
   thumbnail: {
-    width: '100%',
-    height: 200,
+    width: 140,
+    height: 80,
     resizeMode: 'cover',
   },
   duration: {
@@ -64,16 +58,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   infoContainer: {
-    flexDirection: 'row',
-    padding: 10,
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
+    flexDirection: 'column',
+    marginHorizontal: 10,
+    maxWidth: 160,
   },
   textContainer: {
     flex: 1,
@@ -87,6 +74,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
   },
+  menuBtn: {
+    padding: 5,
+    alignSelf: 'flex-start',
+  },
 });
 
-export default React.memo(PodcastItem);
+export default React.memo(PodcastItemMini);
