@@ -29,7 +29,6 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   onClose,
 }) => {
   const user = useSelector((state: RootState) => state.auth.user);
-  console.log(user);
   const dispatch = useDispatch();
 
   const [firstName, setFirstName] = useState(user?.firstName || '');
@@ -129,7 +128,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   };
 
   return (
-    <Modal visible={isVisible} animationType="slide" transparent={false}>
+    <Modal visible={isVisible} animationType="slide" transparent={false} onRequestClose={onClose}>
       <View style={styles.modalContainer}>
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} disabled={loading}>
