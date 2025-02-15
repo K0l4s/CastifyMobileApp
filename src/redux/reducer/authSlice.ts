@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { User } from '../../models/User';
+import { updateUser, User, userUpdate } from '../../models/User';
 
 
 interface AuthState {
@@ -44,17 +44,21 @@ const authSlice = createSlice({
         state.user.coverUrl = action.payload;
       }
     },
-    updateInformation(state, action: PayloadAction<User>) {
+    updateInformation(state, action: PayloadAction<updateUser>) {
       // change firstName, lastName, middleName, birthDay, provinces, districts, wards, hamlet.
       if (state.user) {
         state.user.firstName = action.payload.firstName;
         state.user.lastName = action.payload.lastName;
         state.user.middleName = action.payload.middleName;
-        state.user.birthDay = action.payload.birthDay;
-        state.user.provinces = action.payload.provinces;
-        state.user.districts = action.payload.districts;
-        state.user.wards = action.payload.wards;
-        state.user.hamlet = action.payload.hamlet
+        state.user.addressElements = action.payload.addressElement;
+        state.user.birthday = action.payload.birthday;
+        state.user.provinces = action.payload.province;
+        state.user.districts = action.payload.district;
+        state.user.wards = action.payload.ward;
+        state.user.hamlet = action.payload.hamlet;
+        state.user.phone = action.payload.phone;
+        state.user.avatarUrl = action.payload.avatarUrl;
+        state.user.coverUrl = action.payload.coverUrl;
       }
     }
   }

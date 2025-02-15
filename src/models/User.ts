@@ -57,12 +57,14 @@ export interface updateUser {
     middleName: string;
     lastName: string;
     birthday: string;
-    // address: string;
-    addressElements: string;
+    hamlet: string;
+    addressElement: string;
     ward: string;
     district: string;
-    provinces: string;
+    province: string;
     phone: string;
+    avatarUrl: string;
+    coverUrl: string;
 }
 export interface userCard {
     id: string;
