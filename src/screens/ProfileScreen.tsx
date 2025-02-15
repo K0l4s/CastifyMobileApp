@@ -10,6 +10,7 @@ import { Podcast } from '../models/PodcastModel';
 import PodcastService from '../services/podcastService';
 import { FlatList } from 'react-native-gesture-handler';
 import PodcastItemMini from '../components/podcast/PodcastItemMini';
+import EditProfileModal from '../components/modals/EditProfileModal';
 
 const ProfileScreen: React.FC = () => {
   const user = useSelector((state: RootState) => state.auth.user);
@@ -17,6 +18,7 @@ const ProfileScreen: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState('Video');
   const [myPodcasts, setMyPodcasts] = useState<Podcast[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
 
   const fullName = `${user?.lastName} ${user?.middleName} ${user?.firstName}`;
 
@@ -85,7 +87,10 @@ const ProfileScreen: React.FC = () => {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.editButton}>
+      <TouchableOpacity 
+        style={styles.editButton} 
+        onPress={() => setIsEditModalVisible(true)}
+      >
         <Text style={{fontWeight: "bold"}}>Edit your profile</Text>
         <Icon name="pencil" size={20} color="#000" />
       </TouchableOpacity>
@@ -106,7 +111,10 @@ const ProfileScreen: React.FC = () => {
       </View>
 
       {renderTabContent()}
-
+      <EditProfileModal
+        isVisible={isEditModalVisible}
+        onClose={() => setIsEditModalVisible(false)}
+      />
     </View>
   );
 };
