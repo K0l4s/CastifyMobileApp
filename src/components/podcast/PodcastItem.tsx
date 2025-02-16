@@ -4,32 +4,38 @@ import { Podcast } from '../../models/PodcastModel';
 import DateUtil from '../../utils/dateUtil';
 import { defaultAvatar } from '../../utils/fileUtil';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootParamList } from '../../type/navigationType';
 
 interface PodcastItemProps {
   podcast: Podcast;
 }
 
 const PodcastItem: React.FC<PodcastItemProps> = ({ podcast }) => {
+  const navigation = useNavigation<StackNavigationProp<RootParamList>>();
 
   return (
-    <View style={styles.itemContainer}>
-      <View style={styles.thumbnailContainer}>
-        <Image source={{ uri: podcast.thumbnailUrl || '' }} style={styles.thumbnail} />
-        <Text style={styles.duration}>{DateUtil.formatTimeDuration(podcast.duration)}</Text>
-      </View>
-      <View style={styles.infoContainer}>
-      <Image source={podcast.user.avatarUrl ? { uri: podcast.user.avatarUrl } : defaultAvatar} style={styles.avatar} />
-        <View style={styles.textContainer}>
-          <Text style={styles.title} numberOfLines={2} ellipsizeMode='tail'>{podcast.title}</Text>
-          <Text style={styles.subtitle}>
-            {podcast.user.fullname} · {podcast.views} views · {DateUtil.formatDateToTimeAgo(new Date(podcast.createdDay))}
-          </Text>
+    <TouchableOpacity onPress={() => navigation.navigate('Podcast', { podcast })}>
+      <View style={styles.itemContainer}>
+        <View style={styles.thumbnailContainer}>
+          <Image source={{ uri: podcast.thumbnailUrl || '' }} style={styles.thumbnail} />
+          <Text style={styles.duration}>{DateUtil.formatTimeDuration(podcast.duration)}</Text>
         </View>
-        <TouchableOpacity>
-          <Icon name="ellipsis-vertical" size={20} color="#000" />
-        </TouchableOpacity>
+        <View style={styles.infoContainer}>
+          <Image source={podcast.user.avatarUrl ? { uri: podcast.user.avatarUrl } : defaultAvatar} style={styles.avatar} />
+          <View style={styles.textContainer}>
+            <Text style={styles.title} numberOfLines={2} ellipsizeMode='tail'>{podcast.title}</Text>
+            <Text style={styles.subtitle}>
+              {podcast.user.fullname} · {podcast.views} views · {DateUtil.formatDateToTimeAgo(new Date(podcast.createdDay))}
+            </Text>
+          </View>
+          <TouchableOpacity>
+            <Icon name="ellipsis-vertical" size={20} color="#000" />
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 

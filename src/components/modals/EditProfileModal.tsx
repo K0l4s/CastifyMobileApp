@@ -18,6 +18,7 @@ import {launchImageLibrary} from 'react-native-image-picker';
 import UserService from '../../services/userService';
 import {updateAvatar, updateInformation} from '../../redux/reducer/authSlice';
 import {TextInput} from 'react-native-paper';
+import Toast from 'react-native-toast-message';
 
 interface EditProfileModalProps {
   isVisible: boolean;
@@ -93,6 +94,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
       // Update user information
       await UserService.updateUser(updatedUser);
       dispatch(updateInformation(updatedUser));
+
+      Toast.show({
+        type: 'success',
+        text1: 'Profile updated successfully!',
+        position: 'bottom',
+        visibilityTime: 2000,
+      });
 
       // Close the modal
       onClose();
