@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
@@ -11,6 +11,9 @@ import PodcastService from '../services/podcastService';
 import { FlatList } from 'react-native-gesture-handler';
 import PodcastItemMini from '../components/podcast/PodcastItemMini';
 import EditProfileModal from '../components/modals/EditProfileModal';
+import BottomSheet from '@gorhom/bottom-sheet';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import CustomBottomSheet from '../components/common/CustomBottomSheet';
 
 const ProfileScreen: React.FC = () => {
   const user = useSelector((state: RootState) => state.auth.user);
@@ -19,6 +22,7 @@ const ProfileScreen: React.FC = () => {
   const [myPodcasts, setMyPodcasts] = useState<Podcast[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const sheetRef = useRef<BottomSheet>(null);
 
   const fullName = `${user?.lastName} ${user?.middleName} ${user?.firstName}`;
 
@@ -61,13 +65,18 @@ const ProfileScreen: React.FC = () => {
     }
   };
 
+  const bottomSheetOptions = [
+    { label: 'Share', onPress: () => console.log('Share pressed') },
+    { label: 'Settings', onPress: () => console.log('Settings pressed') },
+  ];
+
   return (
-    <View style={styles.container}>
+    <GestureHandlerRootView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.headerButton}>
+        <TouchableOpacity style={styles.headerButton} onPress={() => sheetRef.current?.expand()}>
           <Icon name="ellipsis-vertical" size={24} color="#000" />
         </TouchableOpacity>
       </View>
@@ -89,7 +98,10 @@ const ProfileScreen: React.FC = () => {
 
       <TouchableOpacity 
         style={styles.editButton} 
-        onPress={() => setIsEditModalVisible(true)}
+        onPress={() => { 
+          sheetRef.current?.close();
+          setIsEditModalVisible(true);
+         }}
       >
         <Text style={{fontWeight: "bold"}}>Edit your profile</Text>
         <Icon name="pencil" size={20} color="#000" />
@@ -115,7 +127,13 @@ const ProfileScreen: React.FC = () => {
         isVisible={isEditModalVisible}
         onClose={() => setIsEditModalVisible(false)}
       />
-    </View>
+      {!isEditModalVisible && (
+        <CustomBottomSheet
+          sheetRef={sheetRef}
+          options={bottomSheetOptions}
+        />
+      )}
+    </GestureHandlerRootView>
   );
 };
 
