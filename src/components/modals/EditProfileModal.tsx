@@ -74,13 +74,15 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         const avatarResponse = await UserService.changeAvatar(avatarFile);
         dispatch(updateAvatar(avatarResponse.data.avatarUrl));
       }
+      
+      const birthdayLocalDateTime = birthday.toISOString().replace('Z', '');
 
       // Prepare updated user information
       const updatedUser = {
         firstName,
         middleName,
         lastName,
-        birthday: birthday.toISOString(),
+        birthday: birthdayLocalDateTime,
         addressElement: address,
         phone,
         avatarUrl: avatar,
