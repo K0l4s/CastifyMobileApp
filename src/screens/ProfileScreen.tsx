@@ -98,7 +98,10 @@ const ProfileScreen: React.FC = () => {
 
       <TouchableOpacity 
         style={styles.editButton} 
-        onPress={() => setIsEditModalVisible(true)}
+        onPress={() => { 
+          sheetRef.current?.close();
+          setIsEditModalVisible(true);
+         }}
       >
         <Text style={{fontWeight: "bold"}}>Edit your profile</Text>
         <Icon name="pencil" size={20} color="#000" />
@@ -124,10 +127,12 @@ const ProfileScreen: React.FC = () => {
         isVisible={isEditModalVisible}
         onClose={() => setIsEditModalVisible(false)}
       />
-      <CustomBottomSheet
-        sheetRef={sheetRef}
-        options={bottomSheetOptions}
-      />
+      {!isEditModalVisible && (
+        <CustomBottomSheet
+          sheetRef={sheetRef}
+          options={bottomSheetOptions}
+        />
+      )}
     </GestureHandlerRootView>
   );
 };

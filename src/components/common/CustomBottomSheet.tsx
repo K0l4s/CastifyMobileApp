@@ -9,7 +9,7 @@ interface CustomBottomSheetProps {
 
 const CustomBottomSheet: React.FC<CustomBottomSheetProps> = ({ sheetRef, options }) => {
   // Calculate the height of the bottom sheet based on the number of options
-  const optionHeight = 60;
+  const optionHeight = 50;
   const snapPoints = useMemo(() => [options.length * optionHeight], [options.length]);
 
   // callbacks
@@ -24,6 +24,7 @@ const CustomBottomSheet: React.FC<CustomBottomSheetProps> = ({ sheetRef, options
       snapPoints={snapPoints}
       onChange={handleSheetChanges}
       enablePanDownToClose={true}
+      backgroundStyle={{ backgroundColor: 'rgba(0,0,0,0.1)' }}
     >
       <BottomSheetView style={styles.contentContainer}>
         {options.map((option, index) => (
@@ -39,10 +40,9 @@ const CustomBottomSheet: React.FC<CustomBottomSheetProps> = ({ sheetRef, options
 const styles = StyleSheet.create({
   contentContainer: {
     padding: 16,
-    backgroundColor: 'white',
   },
   option: {
-    height: 60,
+    height: 50,
     justifyContent: 'center',
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
