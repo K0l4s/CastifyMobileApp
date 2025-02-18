@@ -1,8 +1,7 @@
 import axios from "axios";
 import * as Keychain from "react-native-keychain";
-// import { API_URL } from "@env";
-// export const BaseApi = API_URL;
-export const BaseApi = "http://26.201.25.50:9090"
+import { API_URL } from "@env";
+export const BaseApi = API_URL;
 console.log('BaseApi:', BaseApi); // Log BaseApi
 
 export const axiosInstance = axios.create({
