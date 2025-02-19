@@ -37,6 +37,11 @@ const RegisterModalStep1 = ({ isOpen, onClose, onNextStep, onSwitchToLogin }: Re
     }));
   };
 
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleNext = () => {
     setErrorMessage("");
     
@@ -44,6 +49,11 @@ const RegisterModalStep1 = ({ isOpen, onClose, onNextStep, onSwitchToLogin }: Re
       setErrorMessage("Please fill in all fields.");
       return;
     }
+
+    if (!isValidEmail(formData.email)) {
+        setErrorMessage("Invalid email format.");
+        return;
+      }
 
     if (formData.password.length < 8) {
       setErrorMessage("Password must be at least 8 characters long.");
