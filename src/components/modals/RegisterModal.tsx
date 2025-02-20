@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Modal,
   View,
@@ -11,15 +11,18 @@ import {
   Platform,
 } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
+import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { RootParamList } from "../../type/navigationType"; 
 
 interface RegisterModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onNextStep: (email: string, password: string) => void;
   onSwitchToLogin: () => void;
 }
 
-const RegisterModalStep1 = ({ isOpen, onClose, onNextStep, onSwitchToLogin }: RegisterModalProps) => {
+const RegisterModalStep1 = ({ isOpen, onClose, onSwitchToLogin }: RegisterModalProps) => {
+  const navigation = useNavigation<StackNavigationProp<RootParamList, "Verify">>();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [formData, setFormData] = useState({
@@ -42,18 +45,18 @@ const RegisterModalStep1 = ({ isOpen, onClose, onNextStep, onSwitchToLogin }: Re
     return emailRegex.test(email);
   };
 
-  const handleNext = () => {
+  const handleRegisterStep1 = () => {
     setErrorMessage("");
-    
+
     if (!formData.email || !formData.password || !formData.retypePassword) {
       setErrorMessage("Please fill in all fields.");
       return;
     }
 
     if (!isValidEmail(formData.email)) {
-        setErrorMessage("Invalid email format.");
-        return;
-      }
+      setErrorMessage("Invalid email format.");
+      return;
+    }
 
     if (formData.password.length < 8) {
       setErrorMessage("Password must be at least 8 characters long.");
@@ -66,10 +69,11 @@ const RegisterModalStep1 = ({ isOpen, onClose, onNextStep, onSwitchToLogin }: Re
     }
 
     setIsLoading(true);
-    
+
     setTimeout(() => {
       setIsLoading(false);
-      onNextStep(formData.email, formData.password);
+      onClose(); // Đóng modal
+      navigation.navigate("Verify", { email: formData.email }); // Sửa lại đúng tên màn hình
     }, 1000);
   };
 
@@ -77,7 +81,7 @@ const RegisterModalStep1 = ({ isOpen, onClose, onNextStep, onSwitchToLogin }: Re
     <Modal visible={isOpen} animationType="fade" transparent={true}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={[styles.container, { backgroundColor: "transparent" }]}
+        style={styles.container}
       >
         <View style={styles.modal}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -120,12 +124,12 @@ const RegisterModalStep1 = ({ isOpen, onClose, onNextStep, onSwitchToLogin }: Re
           {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
           <TouchableOpacity
             style={[styles.button, isLoading && styles.buttonDisabled]}
-            onPress={handleNext}
+            onPress={handleRegisterStep1}
             disabled={isLoading}
           >
             {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Register</Text>}
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => onSwitchToLogin()}>
+          <TouchableOpacity onPress={onSwitchToLogin}>
             <Text style={styles.loginText}>Already have an account? Login instead</Text>
           </TouchableOpacity>
         </View>
@@ -172,21 +176,19 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     width: "100%",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    paddingHorizontal: 10,
     marginBottom: 15,
   },
   passwordInput: {
     flex: 1,
     height: 50,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    color: 'black',
+    color: "black",
   },
   eyeIcon: {
-    position: "absolute",
-    right: 10,
-    top: 13,
+    padding: 10,
   },
   button: {
     width: "100%",
@@ -204,14 +206,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  loginText: {
-    color: "#4f46e5",
-    marginTop: 5,
-  },
   errorText: {
     color: "red",
     fontSize: 14,
     marginBottom: 10,
+  },
+  loginText: {
+    color: "#4f46e5",
+    marginTop: 10,
   },
 });
 

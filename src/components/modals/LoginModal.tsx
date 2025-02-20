@@ -142,7 +142,7 @@ const LoginModal = ({ isOpen, onClose, trigger }: DefaultModalProps) => {
             <RegisterModalStep1 
               isOpen={true} 
               onClose={() => setModalType("login")} 
-              onNextStep={() => {}} 
+              // onNextStep={() => {}} 
               onSwitchToLogin={() => setModalType("login")} 
             />
           )}
