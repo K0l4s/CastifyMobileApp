@@ -5,4 +5,5 @@ export type RootParamList = {
   Main: undefined,
   Profile: undefined,
   Podcast: { podcast: Podcast };
+  Verify: { email: string };
 }
