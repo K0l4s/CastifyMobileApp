@@ -73,7 +73,8 @@ const RegisterModalStep1 = ({ isOpen, onClose, onSwitchToLogin }: RegisterModalP
     setTimeout(() => {
       setIsLoading(false);
       onClose(); // Đóng modal
-      navigation.navigate("Verify", { email: formData.email }); // Sửa lại đúng tên màn hình
+      navigation.navigate("Verify", { email: formData.email });
+      // navigation.navigate('RegisterFinal');
     }, 1000);
   };
 

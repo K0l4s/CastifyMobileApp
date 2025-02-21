@@ -10,6 +10,7 @@ import Toast from 'react-native-toast-message';
 import ProfileScreen from './src/screens/ProfileScreen';
 import PodcastScreen from './src/screens/PodcastScreen';
 import VerifyScreen from './src/screens/VerifyScreen';
+import RegisterFinalScreen from './src/screens/RegisterFinalScreen';
 
 
 const Stack = createStackNavigator<RootParamList>();
@@ -25,6 +26,7 @@ const App = () => {
           <Stack.Screen name="Profile" component={ProfileScreen}/>
           <Stack.Screen name="Podcast" component={PodcastScreen}/>
           <Stack.Screen name="Verify" component={VerifyScreen}/>
+          <Stack.Screen name="RegisterFinal" component={RegisterFinalScreen}/>
         </Stack.Navigator>
         <Toast />
       </NavigationContainer>
