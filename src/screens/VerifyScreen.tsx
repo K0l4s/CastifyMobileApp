@@ -15,8 +15,8 @@ import {
 import { StackNavigationProp } from '@react-navigation/stack';
 
 type RootStackParamList = {
-  VerifyScreen: undefined;
-  HomeScreen: undefined;
+  VerifyScreen: { email: string };
+  RegisterFinal: undefined;
 };
 
 type VerifyScreenNavigationProp = StackNavigationProp<RootStackParamList, 'VerifyScreen'>;
@@ -56,7 +56,7 @@ const VerifyScreen: React.FC<VerifyScreenProps> = ({ navigation }) => {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      navigation.navigate('HomeScreen');
+      navigation.navigate('RegisterFinal');
     }, 1000);
   };
 
