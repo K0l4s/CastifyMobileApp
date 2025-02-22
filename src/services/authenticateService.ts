@@ -79,7 +79,7 @@ class AuthenticateService {
         // };
 
         // return await AuthenticateService.authenticate(loginData, dispatch);
-        navigation.navigate("VerifyScreen", { email: formData.email });
+        navigation.navigate("Verify", { email: formData.email });
       } else {
         throw new Error("Registration failed");
       }
