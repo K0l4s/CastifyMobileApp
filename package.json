@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@gorhom/bottom-sheet": "^5.1.1",
+    "@react-native-community/datetimepicker": "^8.3.0",
     "@react-native-community/template": "^0.76.6",
     "@react-native-masked-view/masked-view": "^0.3.2",
     "@react-navigation/bottom-tabs": "^7.2.0",
