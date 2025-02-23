@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import {NavigationContainer} from '@react-navigation/native';
+import {LinkingOptions, NavigationContainer, useNavigation} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import SplashScreen from './src/screens/SplashScreen';
 import MainScreen from './src/screens/MainScreen';
@@ -9,74 +9,61 @@ import { store } from './src/redux/store';
 import Toast from 'react-native-toast-message';
 import ProfileScreen from './src/screens/ProfileScreen';
 import PodcastScreen from './src/screens/PodcastScreen';
-import SockJS from 'sockjs-client';
-import { Client } from '@stomp/stompjs';
-import { BaseApi } from './src/utils/axiosInstance';
+import VerifyScreen from './src/screens/VerifyScreen';
+import RegisterFinalScreen from './src/screens/RegisterFinalScreen';
+import { Linking } from 'react-native';
+import FallbackScreen from './src/screens/FallbackScreen';
+import VerifySuccessScreen from './src/screens/VerifySuccessScreen';
 
 
 const Stack = createStackNavigator<RootParamList>();
 
+// Cấu hình Deep Link
+const linking: LinkingOptions<RootParamList> = {
+  prefixes: ["castify://", "https://castify.vercel.app"], // Các URL scheme
+  config: {
+    screens: {
+      Verify: {
+        path: "verify",
+        parse: {
+          token: (token: string) => `${token}`,
+        },
+      },
+    },
+  },
+};
+
 // Main App
 const App = () => {
-  const stompClientRef = React.useRef<Client | null>(null);
   useEffect(() => {
-    console.log("🔄 Khởi tạo WebSocket...");
+    const handleDeepLink = (event: { url: string }) => {
+      console.log("Deep Link Received:", event.url);
+    };
 
-    const socket = new SockJS(BaseApi + "/ws");
-    const stompClient = new Client({
-      webSocketFactory: () => socket,
-      reconnectDelay: 5000,
-      connectHeaders: {
-        Authorization: `Bearer ${"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrb2xhcyIsImlhdCI6MTc0MDA3Nzc3NSwiZXhwIjoxNzQwMTY0MTc1fQ.47LESZIw6Au_iO485-H4i5rFdVLFjWguYgf_BpQf1cI"}`,
-      },
-      onConnect: () => {
-        console.log("✅ WebSocket connected successfully");
+    // Lắng nghe deep link khi app đang mở
+    Linking.addEventListener("url", handleDeepLink);
 
-        // 📥 Nhận tin nhắn trong nhóm hiện tại
-
-
-        // 🔔 Nhận thông báo tin nhắn cá nhân
-        stompClient.subscribe(
-          `/user/67b4cb7efb70915589b7b276/queue/msg`,
-          (message) => {
-            const notification = JSON.parse(message.body);
-            console.log("🔔 New message notification:", notification);
-            // dispatch(receiveMsg(notification));
-            // checkNotificationPermission();
-            // Kiểm tra xem người dùng có đang ở đúng group không
-            // toast.info("Hello");
-
-          }
-        );
-      },
-      onDisconnect: () => {
-        console.log("❎ WebSocket disconnected");
-      },
-      onStompError: (frame) => {
-        console.error("🚨 Broker reported error: " + frame.headers["message"]);
-        console.error("📄 Additional details: " + frame.body);
-      },
-      onWebSocketError: (error) => {
-        console.error("🔌 WebSocket error:", error);
-      },
+    // Xử lý deep link khi app được mở từ trạng thái đóng
+    Linking.getInitialURL().then((url) => {
+      if (url) handleDeepLink({ url });
     });
 
-    stompClient.activate();
-    stompClientRef.current = stompClient;
-
     return () => {
-      console.log("🔄 Cleaning up WebSocket...");
-      stompClient.deactivate();
+      Linking.removeAllListeners("url");
     };
   }, []);
+
   return (
     <Provider store={store}>
-      <NavigationContainer>
+      <NavigationContainer linking={linking} fallback={<FallbackScreen />}>
         <Stack.Navigator screenOptions={{headerShown: false, cardStyle: { backgroundColor: '#fff' }}}>
           <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Main" component={MainScreen} />
           <Stack.Screen name="Profile" component={ProfileScreen}/>
-          <Stack.Screen name="Podcast" component={PodcastScreen}/ >
+          <Stack.Screen name="Podcast" component={PodcastScreen}/>
+          <Stack.Screen name="Verify" component={VerifyScreen}/>
+          <Stack.Screen name="RegisterFinal" component={RegisterFinalScreen}/>
+          <Stack.Screen name="VerifySuccess" component={VerifySuccessScreen}/>
         </Stack.Navigator>
         <Toast />
       </NavigationContainer>

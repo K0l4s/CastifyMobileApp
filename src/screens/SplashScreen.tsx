@@ -3,12 +3,16 @@ import {View, Image, StyleSheet, ActivityIndicator} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootParamList } from '../type/navigationType';
+import * as Keychain from 'react-native-keychain';
+import { useDispatch } from 'react-redux';
+import { login, setUser } from '../redux/reducer/authSlice';
 
 // Import images
 const appLogo = require('../assets/images/logo.png');
 
 const SplashScreen = () => {
   const navigation = useNavigation<StackNavigationProp<RootParamList>>();
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const loadData = async () => {
