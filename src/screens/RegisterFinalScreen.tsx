@@ -46,24 +46,28 @@ const RegisterFinalScreen: React.FC<RegisterFinalScreenProps> = ({ navigation })
       <TextInput
         style={styles.input}
         placeholder="First Name"
+        placeholderTextColor="#aaa"
         value={formData.firstName}
         onChangeText={(text) => handleInputChange('firstName', text)}
       />
       <TextInput
         style={styles.input}
         placeholder="Middle Name"
+        placeholderTextColor="#aaa"
         value={formData.middleName}
         onChangeText={(text) => handleInputChange('middleName', text)}
       />
       <TextInput
         style={styles.input}
         placeholder="Last Name"
+        placeholderTextColor="#aaa"
         value={formData.lastName}
         onChangeText={(text) => handleInputChange('lastName', text)}
       />
       <TextInput
         style={styles.input}
         placeholder="Phone"
+        placeholderTextColor="#aaa"
         keyboardType="phone-pad"
         value={formData.phone}
         onChangeText={(text) => handleInputChange('phone', text)}
@@ -77,12 +81,14 @@ const RegisterFinalScreen: React.FC<RegisterFinalScreenProps> = ({ navigation })
       <TextInput
         style={styles.input}
         placeholder="Address"
+        placeholderTextColor="#aaa"
         value={formData.address}
         onChangeText={(text) => handleInputChange('address', text)}
       />
       <TextInput
         style={styles.input}
         placeholder="Nickname"
+        placeholderTextColor="#aaa"
         value={formData.nickname}
         onChangeText={(text) => handleInputChange('nickname', text)}
       />

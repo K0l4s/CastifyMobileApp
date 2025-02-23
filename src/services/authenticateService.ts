@@ -104,6 +104,20 @@ class AuthenticateService {
       }
     })
   }
+
+  static async logOut(navigation: any) {
+    try {
+      await Keychain.resetGenericPassword();
+      axiosInstance.get(`/api/v1/auth/logout`);
+      navigation.replace('Main');
+    } catch (error) {
+      console.error('Logout error:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'An error occurred during logout.',
+      });
+    }
+  }
 }
 
 export default AuthenticateService;

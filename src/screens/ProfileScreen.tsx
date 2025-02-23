@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -14,9 +14,12 @@ import EditProfileModal from '../components/modals/EditProfileModal';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import CustomBottomSheet from '../components/common/CustomBottomSheet';
+import AuthenticateService from '../services/authenticateService';
+import { logout } from '../redux/reducer/authSlice';
 
 const ProfileScreen: React.FC = () => {
   const user = useSelector((state: RootState) => state.auth.user);
+  const dispatch = useDispatch();
   const navigation = useNavigation<StackNavigationProp<RootParamList>>();
   const [selectedTab, setSelectedTab] = useState('Video');
   const [myPodcasts, setMyPodcasts] = useState<Podcast[]>([]);
@@ -69,6 +72,12 @@ const ProfileScreen: React.FC = () => {
   const bottomSheetOptions = [
     { label: 'Share', onPress: () => console.log('Share pressed') },
     { label: 'Settings', onPress: () => console.log('Settings pressed') },
+    { label: 'Logout', onPress: () => 
+      { 
+        AuthenticateService.logOut(navigation)
+        dispatch(logout());
+      } 
+    },
   ];
 
   return (
@@ -90,9 +99,9 @@ const ProfileScreen: React.FC = () => {
           <Text style={styles.fullname}>{fullName}</Text>
           <Text style={styles.username}>@{user?.username}</Text>
           <Text style={styles.stats}>
-            <Text style={styles.statsText}>{user?.followers || "1.34 k"} Followers </Text>
+            <Text style={styles.statsText}>{user?.followers || "1"} Followers </Text>
             <Text style={styles.statsText}> • </Text>
-            <Text style={styles.statsText}>{user?.podcastCount || "120"} Podcasts</Text>
+            <Text style={styles.statsText}>{user?.podcastCount || "1"} Podcasts</Text>
           </Text>
         </View>
       </View>

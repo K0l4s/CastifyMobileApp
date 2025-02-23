@@ -23,8 +23,10 @@ axiosInstanceAuth.interceptors.request.use(
   async (config) => {
     try {
       const credentials = await Keychain.getGenericPassword(); // get token from Keychain
-      const tokenData = credentials ? JSON.parse(credentials.password) : null;
-      config.headers.Authorization = `Bearer ${tokenData.access_token}`; // add token to request header
+      if (credentials) {
+        const tokenData = JSON.parse(credentials.password);
+        config.headers.Authorization = `Bearer ${tokenData.access_token}`; // add token to request header
+      }
     } catch (error) {
       console.error("Error retrieving token from Keychain:", error);
     }
@@ -47,8 +49,10 @@ axiosInstanceFile.interceptors.request.use(
   async (config) => {
     try {
       const credentials = await Keychain.getGenericPassword(); // get token from Keychain
-      const tokenData = credentials ? JSON.parse(credentials.password) : null;
-      config.headers.Authorization = `Bearer ${tokenData.access_token}`; // add token to request header
+      if (credentials) {
+        const tokenData = JSON.parse(credentials.password);
+        config.headers.Authorization = `Bearer ${tokenData.access_token}`; // add token to request header
+      }
     } catch (error) {
       console.error("Error retrieving token from Keychain:", error);
     }
