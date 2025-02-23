@@ -8,7 +8,6 @@ import { RootState } from '../redux/store';
 import useStomp from '../hooks/useStomp';
 import { BaseApi } from '../utils/axiosInstance';
 
-
 interface MessageData {
   message: string;
 }
@@ -35,7 +34,7 @@ const ChatScreen = () => {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.chatItem}>
-            <Image source={{ uri: item.imageUrl }} style={styles.avatar} />
+            <Image source={{ uri: item.imageUrl? item.imageUrl : "https://png.pngtree.com/element_our/png_detail/20180904/group-avatar-icon-design-vector-png_75950.jpg" }} style={styles.avatar} />
             <View style={styles.chatDetails}>
               <Text style={styles.groupName}>{item.title}</Text>
               <Text style={[styles.lastMessage && styles.unreadMessage]}>
