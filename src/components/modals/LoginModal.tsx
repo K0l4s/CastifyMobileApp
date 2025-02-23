@@ -134,7 +134,7 @@ const LoginModal = ({ isOpen, onClose, trigger }: DefaultModalProps) => {
               }}>
                 <Text style={styles.link}>Don't have an account? Register here</Text>
               </TouchableOpacity>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => Toast.show({ type: 'info', text1: "Coming soon!"})}>
                 <Text style={styles.link}>Forgot your password?</Text>
               </TouchableOpacity>
             </>

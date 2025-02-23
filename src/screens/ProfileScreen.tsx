@@ -99,9 +99,9 @@ const ProfileScreen: React.FC = () => {
           <Text style={styles.fullname}>{fullName}</Text>
           <Text style={styles.username}>@{user?.username}</Text>
           <Text style={styles.stats}>
-            <Text style={styles.statsText}>{user?.followers || "1.34 k"} Followers </Text>
+            <Text style={styles.statsText}>{user?.followers || "1"} Followers </Text>
             <Text style={styles.statsText}> • </Text>
-            <Text style={styles.statsText}>{user?.podcastCount || "120"} Podcasts</Text>
+            <Text style={styles.statsText}>{user?.podcastCount || "1"} Podcasts</Text>
           </Text>
         </View>
       </View>
