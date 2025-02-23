@@ -92,9 +92,9 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
         .toISOString()
         .split("T")[0] + "T00:00:00";
       
-      await AuthenticateService.register({ ...formData, birthday: localDateTime }, dispatch, navigation);
+      await AuthenticateService.register({ ...formData, birthday: localDateTime, isMobile: true }, dispatch, navigation);
       onClose();
-      navigation.navigate("Verify", { email: formData.email });
+      // navigation.navigate("Verify", { email: formData.email });
     } catch (error) {
       console.error("Registration failed:", error);
       setErrorMessage("Registration failed. Please try again.");

@@ -55,12 +55,15 @@ class AuthenticateService {
       birthday: string;
       addressElements: string;
       username: string;
+      isMobile: boolean;
     },
     dispatch: AppDispatch,
     navigation: any
   ) {
     try {
       Toast.show({ type: "info", text1: "Registering account..." });
+
+      console.log("Sending register data:", JSON.stringify(formData));
 
       const response = await axiosInstance.post(
         "/api/v1/auth/register",
@@ -92,6 +95,14 @@ class AuthenticateService {
       });
       throw err;
     }
+  }
+
+  static async verifyAccount(token: string) {
+    return await axiosInstance.post('/api/v1/auth/verify-email', {}, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
   }
 }
 
