@@ -14,6 +14,8 @@ import RegisterFinalScreen from './src/screens/RegisterFinalScreen';
 import { Linking } from 'react-native';
 import FallbackScreen from './src/screens/FallbackScreen';
 import VerifySuccessScreen from './src/screens/VerifySuccessScreen';
+import ConversationScreen from './src/screens/ConversationScreen';
+import ChatDetailScreen from './src/screens/ChatDetailScreen';
 
 
 const Stack = createStackNavigator<RootParamList>();
@@ -64,6 +66,7 @@ const App = () => {
           <Stack.Screen name="Verify" component={VerifyScreen}/>
           <Stack.Screen name="RegisterFinal" component={RegisterFinalScreen}/>
           <Stack.Screen name="VerifySuccess" component={VerifySuccessScreen}/>
+          <Stack.Screen name="ChatDetailScreen" component={ChatDetailScreen} options={{ title: 'Chat Detail' }} />
         </Stack.Navigator>
         <Toast />
       </NavigationContainer>

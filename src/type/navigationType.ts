@@ -8,4 +8,6 @@ export type RootParamList = {
   Verify: { token: string },
   RegisterFinal: undefined,
   VerifySuccess: undefined,
+  ChatScreen: undefined,
+  ChatDetailScreen: { conversationId: string }
 }
