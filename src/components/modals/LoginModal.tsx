@@ -16,6 +16,7 @@ import Toast from 'react-native-toast-message';
 import AuthenticateService from "../../services/authenticateService";
 import UserService from "../../services/userService";
 import { setUser } from "../../redux/reducer/authSlice";
+import RegisterModalStep1 from "./RegisterModal";
 
 interface DefaultModalProps {
   trigger: () => void;
@@ -27,22 +28,17 @@ const LoginModal = ({ isOpen, onClose, trigger }: DefaultModalProps) => {
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-  const [showPassword, setShowPassword] = useState(false); // State for toggling password visibility
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
+  const [modalType, setModalType] = useState<"login" | "register">("login");
 
   const handleInputChange = (name: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleLogin = async () => {
     setErrorMessage("");
-    
+
     if (!formData.email || !formData.password) {
       setErrorMessage("Please fill in all fields.");
       return;
@@ -52,7 +48,7 @@ const LoginModal = ({ isOpen, onClose, trigger }: DefaultModalProps) => {
       setErrorMessage("Password must be at least 8 characters long.");
       return;
     }
-    
+
     setIsLoading(true);
 
     try {
@@ -77,67 +73,79 @@ const LoginModal = ({ isOpen, onClose, trigger }: DefaultModalProps) => {
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
             <Icon name="close" size={24} color="#000" />
           </TouchableOpacity>
-          <Text style={styles.title}>Welcome Back</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Email or Username"
-            placeholderTextColor="#aaa"
-            value={formData.email}
-            onChangeText={(text) => handleInputChange("email", text)}
-          />
-          <View style={styles.passwordContainer}>
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="Password"
-              placeholderTextColor="#aaa"
-              secureTextEntry={!showPassword}
-              value={formData.password}
-              onChangeText={(text) => handleInputChange("password", text)}
+
+          {modalType === "login" ? (
+            <>
+              <Text style={styles.title}>Welcome Back</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Email or Username"
+                placeholderTextColor="#aaa"
+                value={formData.email}
+                onChangeText={(text) => handleInputChange("email", text)}
+              />
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={styles.passwordInput}
+                  placeholder="Password"
+                  placeholderTextColor="#aaa"
+                  secureTextEntry={!showPassword}
+                  value={formData.password}
+                  onChangeText={(text) => handleInputChange("password", text)}
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                  style={styles.eyeIcon}
+                >
+                  <Icon name={showPassword ? "eye-off" : "eye"} size={24} color="#aaa" />
+                </TouchableOpacity>
+              </View>
+              {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+
+              <TouchableOpacity
+                style={[styles.button, isLoading && styles.buttonDisabled]}
+                onPress={handleLogin}
+                disabled={isLoading}
+              >
+                {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Login</Text>}
+              </TouchableOpacity>
+
+              <View style={styles.divider}>
+                <Text style={styles.dividerText}>Or continue with</Text>
+              </View>
+
+              <View style={styles.socialButtons}>
+                <TouchableOpacity
+                  style={styles.socialButton}
+                  onPress={() => Toast.show({ type: 'info', text1: "Google login coming soon!" })}
+                >
+                  <Icon name="logo-google" size={24} color="#DB4437" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.socialButton}
+                  onPress={() => Toast.show({ type: 'info', text1: "Facebook login coming soon!" })}
+                >
+                  <Icon name="logo-facebook" size={24} color="#4267B2" />
+                </TouchableOpacity>
+              </View>
+
+              <TouchableOpacity onPress={() => {
+                setModalType("register");
+              }}>
+                <Text style={styles.link}>Don't have an account? Register here</Text>
+              </TouchableOpacity>
+              <TouchableOpacity>
+                <Text style={styles.link}>Forgot your password?</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <RegisterModalStep1 
+              isOpen={true} 
+              onClose={() => setModalType("login")} 
+              // onNextStep={() => {}} 
+              onSwitchToLogin={() => setModalType("login")} 
             />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-              <Icon name={showPassword ? "eye-off" : "eye"} size={24} color="#aaa" />
-            </TouchableOpacity>
-          </View>
-          {errorMessage ? (
-            <Text style={styles.errorText}>{errorMessage}</Text>
-          ) : null}
-          <TouchableOpacity
-            style={[styles.button, isLoading && styles.buttonDisabled]}
-            onPress={handleLogin}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>Login</Text>
-            )}
-          </TouchableOpacity>
-
-          <View style={styles.divider}>
-            <Text style={styles.dividerText}>Or continue with</Text>
-          </View>
-
-          <View style={styles.socialButtons}>
-            <TouchableOpacity
-              style={[styles.socialButton]}
-              onPress={() => Toast.show({ type: 'info', text1: "Google login coming soon!" })}
-            >
-              <Icon name="logo-google" size={24} color="#DB4437" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.socialButton]}
-              onPress={() => Toast.show({ type: 'info', text1: "Facebook login coming soon!" })}
-            >
-              <Icon name="logo-facebook" size={24} color="#4267B2" />
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity onPress={trigger}>
-            <Text style={styles.link}>Don't have an account? Register here</Text>
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <Text style={styles.link}>Forgot your password?</Text>
-          </TouchableOpacity>
+          )}
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -218,10 +226,13 @@ const styles = StyleSheet.create({
     color: "red",
     fontSize: 14,
     marginBottom: 10,
+    textAlign: "center",
   },
   divider: {
+    width: "100%",
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     marginVertical: 10,
   },
   dividerText: {

@@ -22,6 +22,7 @@ const ProfileScreen: React.FC = () => {
   const [myPodcasts, setMyPodcasts] = useState<Podcast[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
   const sheetRef = useRef<BottomSheet>(null);
 
   const fullName = `${user?.lastName} ${user?.middleName} ${user?.firstName}`;
@@ -76,7 +77,7 @@ const ProfileScreen: React.FC = () => {
         <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.headerButton} onPress={() => sheetRef.current?.expand()}>
+        <TouchableOpacity style={styles.headerButton} onPress={() => setIsBottomSheetVisible(true)}>
           <Icon name="ellipsis-vertical" size={24} color="#000" />
         </TouchableOpacity>
       </View>
@@ -129,10 +130,13 @@ const ProfileScreen: React.FC = () => {
       />
       {!isEditModalVisible && (
         <CustomBottomSheet
-          sheetRef={sheetRef}
-          options={bottomSheetOptions}
-        />
+        sheetRef={sheetRef}
+        options={bottomSheetOptions}
+        isVisible={isBottomSheetVisible}
+        onClose={() => setIsBottomSheetVisible(false)}
+      />
       )}
+      
     </GestureHandlerRootView>
   );
 };

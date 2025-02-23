@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     backgroundColor: 'white',
-    zIndex: 1000,
+    zIndex: 100,
   },
   header: {
     flexDirection: 'row',

@@ -41,6 +41,69 @@ class AuthenticateService {
       throw err;
     }
   }
+
+  static async register(
+    formData: {
+      email: string;
+      repeatEmail: string;
+      password: string;
+      confirmPassword: string;
+      firstName: string;
+      middleName?: string;
+      lastName: string;
+      phone: string;
+      birthday: string;
+      addressElements: string;
+      username: string;
+      isMobile: boolean;
+    },
+    dispatch: AppDispatch,
+    navigation: any
+  ) {
+    try {
+      Toast.show({ type: "info", text1: "Registering account..." });
+
+      console.log("Sending register data:", JSON.stringify(formData));
+
+      const response = await axiosInstance.post(
+        "/api/v1/auth/register",
+        formData
+      );
+
+      console.log("Response:", response.status, response.data);
+
+      if (response.status === 200 || response.status === 201) {
+        Toast.show({ type: "success", text1: "Registration successful!" });
+
+        // // Tự động đăng nhập sau khi đăng ký thành công
+        // const loginData = {
+        //   email: formData.email,
+        //   password: formData.password,
+        // };
+
+        // return await AuthenticateService.authenticate(loginData, dispatch);
+        navigation.navigate("Verify", { email: formData.email });
+      } else {
+        throw new Error("Registration failed");
+      }
+    } catch (err: any) {
+      console.error("Register error:", err.message);
+      console.log("Error response:", err.response?.data);
+      Toast.show({
+        type: "error",
+        text1: err.response?.data?.message || "An error occurred.",
+      });
+      throw err;
+    }
+  }
+
+  static async verifyAccount(token: string) {
+    return await axiosInstance.post('/api/v1/auth/verify-email', {}, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+  }
 }
 
 export default AuthenticateService;
