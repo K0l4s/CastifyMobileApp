@@ -3,9 +3,15 @@ import { View, Text, FlatList, Image, StyleSheet } from 'react-native';
 import { shortConversation } from '../models/Conversation';
 import { conversationService } from '../services/conversationService';
 import DateUtil from '../utils/dateUtil';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
+import useStomp from '../hooks/useStomp';
+import { BaseApi } from '../utils/axiosInstance';
 
 
-
+interface MessageData {
+  message: string;
+}
 const ChatScreen = () => {
   const [chatData, setChatData] = useState<shortConversation[]>([]);
   const fetchData = async () => {

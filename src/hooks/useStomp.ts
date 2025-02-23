@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Client, Message } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-// import { getItem } from '@react-native-async-storage/async-storage';
 import { BaseApi } from '../utils/axiosInstance';
-import * as Keychain from "react-native-keychain";
 
 interface UseStompProps {
     subscribeUrl: string;
@@ -21,52 +19,67 @@ const useStomp = ({ subscribeUrl, trigger, flag = true, onConnect, onDisconnect,
     const [object, setObject] = useState<any>(null);
 
     useEffect(() => {
-        const initializeWebSocket = async () => {
-            // const token = await getItem('token');
-                  const credentials = await Keychain.getGenericPassword(); // get token from Keychain
-            const tokenData = credentials ? JSON.parse(credentials.password) : null;
-            const token = tokenData.access_token;
-            const socket = new SockJS(BaseApi + "/ws");
-            const stompClient = new Client({
-                webSocketFactory: () => socket,
-                reconnectDelay: reconnectDelay ? reconnectDelay : 5000,
-                connectHeaders: {
-                    Authorization: `Bearer ${token}`,
-                },
-                onConnect: () => {
-                    if (flag) {
-                        stompClient.subscribe(subscribeUrl, (message: any) => {
-                            const newMessage: Message = JSON.parse(message.body);
-                            setObject(newMessage);
+        console.log("🔄 Khởi tạo WebSocket...");
+        const token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJrb2xhcyIsImlhdCI6MTc0MDA3Nzc3NSwiZXhwIjoxNzQwMTY0MTc1fQ.47LESZIw6Au_iO485-H4i5rFdVLFjWguYgf_BpQf1cI"
+        
+        // Ensure BaseApi ends with no trailing slash
+        const wsUrl = `${BaseApi.replace(/\/$/, '')}/ws`;
+        const socket = new SockJS(wsUrl);
+
+        const stompClient = new Client({
+            webSocketFactory: () => socket,
+            reconnectDelay: reconnectDelay || 5000,
+            connectHeaders: {
+                Authorization: `Bearer ${token}`,
+            },
+            debug: (str) => {
+                console.log('STOMP Debug:', str);
+            },
+            onConnect: () => {
+                console.log("✅ WebSocket connected successfully");
+
+                try {
+                    if (flag && stompClient.connected) {
+                        stompClient.subscribe(subscribeUrl, (message) => {
+                            try {
+                                const newMessage: Message = JSON.parse(message.body);
+                                setObject(newMessage);
+                            } catch (error) {
+                                console.error("Error parsing message:", error);
+                            }
                         });
                     }
                     onConnect && onConnect();
-                },
-                onDisconnect: () => {
-                    console.log("❎ WebSocket disconnected");
-                    onDisconnect && onDisconnect();
-                },
-                onStompError: (frame: any) => {
-                    console.error("🚨 Broker reported error: " + frame.headers["message"]);
-                    console.error("📄 Additional details: " + frame.body);
-                    onStompError && onStompError(frame);
-                },
-                onWebSocketError: (error: any) => {
-                    console.error("🔌 WebSocket error:", error);
-                    onWebSocketError && onWebSocketError(error);
-                },
-            });
+                } catch (error) {
+                    console.error("Error in onConnect handler:", error);
+                }
+            },
+            onDisconnect: () => {
+                console.log("❎ WebSocket disconnected");
+                onDisconnect && onDisconnect();
+            },
+            onStompError: (frame) => {
+                console.error("🚨 Broker reported error: " + frame.headers["message"]);
+                console.error("📄 Additional details: " + frame.body);
+                onStompError && onStompError(frame);
+            },
+            onWebSocketError: (error) => {
+                console.error("🔌 WebSocket error:", error);
+                onWebSocketError && onWebSocketError(error);
+            },
+        });
 
+        try {
             stompClient.activate();
             stompClientRef.current = stompClient;
-        };
-
-        initializeWebSocket();
+        } catch (error) {
+            console.error("Error activating STOMP client:", error);
+        }
 
         return () => {
             console.log("🔄 Cleaning up WebSocket...");
-            if (stompClientRef.current) {
-                stompClientRef.current.deactivate();
+            if (stompClient.connected) {
+                stompClient.deactivate();
             }
         };
     }, [...trigger]);
