@@ -9,6 +9,7 @@ import GenresTabNavigation from '../podcast/GenresTabNavigation';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootParamList } from '../../type/navigationType';
+import { defaultAvatar } from '../../utils/fileUtil';
 
 const appLogo = require('../../assets/images/logo.png');
 
@@ -31,6 +32,8 @@ const Header: React.FC<HeaderProps> = ({ selectedTab, onSelectTab, genres, anima
   const handleAvatarPress = () => {
     navigation.navigate('Profile');
   }
+
+  const avatarSource = user?.avatarUrl && user.avatarUrl !== '' ? { uri: user.avatarUrl } : defaultAvatar;
 
   return (
     <>
@@ -56,9 +59,7 @@ const Header: React.FC<HeaderProps> = ({ selectedTab, onSelectTab, genres, anima
               onPress={handleAvatarPress}
               style={styles.iconButton}>
             <Image
-              source={{
-                uri: user.avatarUrl,
-              }}
+              source={avatarSource}
               style={styles.profilePic}
             />
           </TouchableOpacity>

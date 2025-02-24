@@ -16,6 +16,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import CustomBottomSheet from '../components/common/CustomBottomSheet';
 import AuthenticateService from '../services/authenticateService';
 import { logout } from '../redux/reducer/authSlice';
+import { defaultAvatar, defaultCover } from '../utils/fileUtil';
+import Toast from 'react-native-toast-message';
 
 const ProfileScreen: React.FC = () => {
   const user = useSelector((state: RootState) => state.auth.user);
@@ -29,6 +31,8 @@ const ProfileScreen: React.FC = () => {
   const sheetRef = useRef<BottomSheet>(null);
 
   const fullName = `${user?.lastName} ${user?.middleName} ${user?.firstName}`;
+  const avatarSource = user?.avatarUrl && user.avatarUrl !== '' ? { uri: user.avatarUrl } : defaultAvatar;
+  const coverSource = user?.coverUrl && user.coverUrl !== '' ? { uri: user.coverUrl } : defaultCover;
 
   useEffect(() => {
     if (selectedTab === 'Video') {
@@ -70,8 +74,8 @@ const ProfileScreen: React.FC = () => {
   };
 
   const bottomSheetOptions = [
-    { label: 'Share', onPress: () => console.log('Share pressed') },
-    { label: 'Settings', onPress: () => console.log('Settings pressed') },
+    { label: 'Share', onPress: () => Toast.show({ type: 'info', text1: "Coming soon!"}) },
+    { label: 'Settings', onPress: () => Toast.show({ type: 'info', text1: "Coming soon!"}) },
     { label: 'Logout', onPress: () => 
       { 
         AuthenticateService.logOut(navigation)
@@ -91,10 +95,10 @@ const ProfileScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      <Image source={{ uri: user?.coverUrl }} style={styles.coverUrl} />
+      <Image source={coverSource} style={styles.coverUrl} />
 
       <View style={styles.profileContainer}>
-        <Image source={{ uri: user?.avatarUrl }} style={styles.avatar} />
+        <Image source={avatarSource} style={styles.avatar} />
         <View style={styles.profileDetails}>
           <Text style={styles.fullname}>{fullName}</Text>
           <Text style={styles.username}>@{user?.username}</Text>

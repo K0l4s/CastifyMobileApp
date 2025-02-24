@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
   modal: { width: "90%", padding: 20, backgroundColor: "#fff", borderRadius: 10, alignItems: "center" },
   closeButton: { position: "absolute", top: 10, right: 10, padding: 5 },
   title: { fontSize: 20, fontWeight: "bold", marginBottom: 20 },
-  input: { width: "100%", height: 50, borderWidth: 1, borderColor: "#ccc", borderRadius: 5, paddingHorizontal: 10, marginBottom: 15, justifyContent: "center" },
+  input: { width: "100%", color: 'black', height: 50, borderWidth: 1, borderColor: "#ccc", borderRadius: 5, paddingHorizontal: 10, marginBottom: 15, justifyContent: "center" },
   button: { width: "100%", backgroundColor: "#4f46e5", paddingVertical: 12, borderRadius: 5, alignItems: "center" },
   buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
   errorText: { color: "red", fontSize: 14, marginBottom: 10 }
