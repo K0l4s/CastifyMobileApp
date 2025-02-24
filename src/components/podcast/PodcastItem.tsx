@@ -16,12 +16,14 @@ const PodcastItem: React.FC<PodcastItemProps> = ({ podcast }) => {
   const navigation = useNavigation<StackNavigationProp<RootParamList>>();
 
   return (
-    <TouchableOpacity onPress={() => navigation.navigate('Podcast', { podcast })}>
+    
       <View style={styles.itemContainer}>
+        <TouchableOpacity onPress={() => navigation.navigate('Podcast', { podcast })}>
         <View style={styles.thumbnailContainer}>
           <Image source={{ uri: podcast.thumbnailUrl || '' }} style={styles.thumbnail} />
           <Text style={styles.duration}>{DateUtil.formatTimeDuration(podcast.duration)}</Text>
         </View>
+        </TouchableOpacity>
         <View style={styles.infoContainer}>
           <Image source={podcast.user.avatarUrl ? { uri: podcast.user.avatarUrl } : defaultAvatar} style={styles.avatar} />
           <View style={styles.textContainer}>
@@ -35,7 +37,6 @@ const PodcastItem: React.FC<PodcastItemProps> = ({ podcast }) => {
           </TouchableOpacity>
         </View>
       </View>
-    </TouchableOpacity>
   );
 };
 
