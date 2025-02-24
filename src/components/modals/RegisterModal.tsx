@@ -92,9 +92,9 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
         .toISOString()
         .split("T")[0] + "T00:00:00";
       
-      await AuthenticateService.register({ ...formData, birthday: localDateTime }, dispatch, navigation);
+      await AuthenticateService.register({ ...formData, birthday: localDateTime, isMobile: true }, dispatch, navigation);
       onClose();
-      navigation.navigate("Verify", { email: formData.email });
+      // navigation.navigate("Verify", { email: formData.email });
     } catch (error) {
       console.error("Registration failed:", error);
       setErrorMessage("Registration failed. Please try again.");
@@ -114,10 +114,10 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
           {step === 1 ? (
             <>
               <Text style={styles.title}>Create an Account - Step 1</Text>
-              <TextInput style={styles.input} placeholder="Email" value={formData.email} onChangeText={(text) => handleInputChange("email", text)} />
-              <TextInput style={styles.input} placeholder="Repeat Email" value={formData.repeatEmail} onChangeText={(text) => handleInputChange("repeatEmail", text)} />
-              <TextInput style={styles.input} placeholder="Password" secureTextEntry={!showPassword} value={formData.password} onChangeText={(text) => handleInputChange("password", text)} />
-              <TextInput style={styles.input} placeholder="Confirm Password" secureTextEntry={!showRetypePassword} value={formData.confirmPassword} onChangeText={(text) => handleInputChange("confirmPassword", text)} />
+              <TextInput style={styles.input} placeholder="Email" placeholderTextColor="#aaa" value={formData.email} onChangeText={(text) => handleInputChange("email", text)} />
+              <TextInput style={styles.input} placeholder="Repeat Email" placeholderTextColor="#aaa" value={formData.repeatEmail} onChangeText={(text) => handleInputChange("repeatEmail", text)} />
+              <TextInput style={styles.input} placeholder="Password" placeholderTextColor="#aaa" secureTextEntry={!showPassword} value={formData.password} onChangeText={(text) => handleInputChange("password", text)} />
+              <TextInput style={styles.input} placeholder="Confirm Password" placeholderTextColor="#aaa" secureTextEntry={!showRetypePassword} value={formData.confirmPassword} onChangeText={(text) => handleInputChange("confirmPassword", text)} />
               {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
               <TouchableOpacity style={styles.button} onPress={handleNextStep}>
                 <Text style={styles.buttonText}>Next</Text>
@@ -126,9 +126,9 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
           ) : (
             <>
               <Text style={styles.title}>Create an Account - Step 2</Text>
-              <TextInput style={styles.input} placeholder="First Name" value={formData.firstName} onChangeText={(text) => handleInputChange("firstName", text)} />
-              <TextInput style={styles.input} placeholder="Middle Name" value={formData.middleName} onChangeText={(text) => handleInputChange("middleName", text)} />
-              <TextInput style={styles.input} placeholder="Last Name" value={formData.lastName} onChangeText={(text) => handleInputChange("lastName", text)} />
+              <TextInput style={styles.input} placeholder="First Name" placeholderTextColor="#aaa" value={formData.firstName} onChangeText={(text) => handleInputChange("firstName", text)} />
+              <TextInput style={styles.input} placeholder="Middle Name" placeholderTextColor="#aaa" value={formData.middleName} onChangeText={(text) => handleInputChange("middleName", text)} />
+              <TextInput style={styles.input} placeholder="Last Name" placeholderTextColor="#aaa" value={formData.lastName} onChangeText={(text) => handleInputChange("lastName", text)} />
               {/* DatePicker để chọn ngày sinh */}
               <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.input}>
                 <Text>{formData.birthday.toISOString().split("T")[0]}</Text>
@@ -146,9 +146,9 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
                   }}
                 />
               )}
-              <TextInput style={styles.input} placeholder="Phone" value={formData.phone} onChangeText={(text) => handleInputChange("phone", text)} />
-              <TextInput style={styles.input} placeholder="Nickname" value={formData.username} onChangeText={(text) => handleInputChange("username", text)} />
-              <TextInput style={styles.input} placeholder="Address" value={formData.addressElements} onChangeText={(text) => handleInputChange("addressElements", text)} />
+              <TextInput style={styles.input} placeholder="Phone" placeholderTextColor="#aaa" value={formData.phone} onChangeText={(text) => handleInputChange("phone", text)} />
+              <TextInput style={styles.input} placeholder="Nickname" placeholderTextColor="#aaa" value={formData.username} onChangeText={(text) => handleInputChange("username", text)} />
+              <TextInput style={styles.input} placeholder="Address" placeholderTextColor="#aaa" value={formData.addressElements} onChangeText={(text) => handleInputChange("addressElements", text)} />
 
               {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
               <TouchableOpacity style={styles.button} onPress={handleRegister}>

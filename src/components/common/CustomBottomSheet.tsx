@@ -1,13 +1,15 @@
-import React, { useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 
 interface CustomBottomSheetProps {
   sheetRef: React.RefObject<BottomSheet>;
   options: { label: string; onPress: () => void }[];
+  isVisible: boolean;
+  onClose: () => void;
 }
 
-const CustomBottomSheet: React.FC<CustomBottomSheetProps> = ({ sheetRef, options }) => {
+const CustomBottomSheet: React.FC<CustomBottomSheetProps> = ({ sheetRef, options, isVisible, onClose }) => {
   // Calculate the height of the bottom sheet based on the number of options
   const optionHeight = 50;
   const snapPoints = useMemo(() => [options.length * optionHeight], [options.length]);
@@ -17,29 +19,54 @@ const CustomBottomSheet: React.FC<CustomBottomSheetProps> = ({ sheetRef, options
     // console.log('handleSheetChanges', index);
   }, []);
 
+  useEffect(() => {
+    if (isVisible) {
+      sheetRef.current?.expand();
+    } else {
+      sheetRef.current?.close();
+    }
+  }, [isVisible]);
+
   return (
-    <BottomSheet
-      ref={sheetRef}
-      index={-1}
-      snapPoints={snapPoints}
-      onChange={handleSheetChanges}
-      enablePanDownToClose={true}
-      backgroundStyle={{ backgroundColor: 'rgba(0,0,0,0.1)' }}
-    >
-      <BottomSheetView style={styles.contentContainer}>
-        {options.map((option, index) => (
-          <TouchableOpacity key={index} style={styles.option} onPress={option.onPress}>
-            <Text style={styles.optionText}>{option.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </BottomSheetView>
-    </BottomSheet>
+    <>
+      {isVisible && (
+        <TouchableWithoutFeedback onPress={onClose}>
+          <View style={styles.overlay} />
+        </TouchableWithoutFeedback>
+      )}
+      <BottomSheet
+        ref={sheetRef}
+        index={isVisible ? 1 : -1}
+        snapPoints={snapPoints}
+        onChange={handleSheetChanges}
+        enablePanDownToClose={true}
+        onClose={onClose}
+      >
+        <BottomSheetView style={styles.contentContainer}>
+          {options.map((option, index) => (
+            <TouchableOpacity key={index} style={styles.option} onPress={option.onPress}>
+              <Text style={styles.optionText}>{option.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </BottomSheetView>
+      </BottomSheet>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 0
+  },
   contentContainer: {
     padding: 16,
+    backgroundColor: 'white',
   },
   option: {
     height: 50,

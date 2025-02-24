@@ -4,6 +4,10 @@ export type RootParamList = {
   Splash: undefined,
   Main: undefined,
   Profile: undefined,
-  Podcast: { podcast: Podcast };
-  Verify: { email: string };
+  Podcast: { podcast: Podcast },
+  Verify: { token: string },
+  RegisterFinal: undefined,
+  VerifySuccess: undefined,
+  ChatScreen: undefined,
+  ChatDetailScreen: { conversationId: string }
 }
