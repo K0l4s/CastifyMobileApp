@@ -3,32 +3,39 @@ import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { Podcast } from '../../models/PodcastModel';
 import DateUtil from '../../utils/dateUtil';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootParamList } from '../../type/navigationType';
 
 interface PodcastItemMiniProps {
   podcast: Podcast;
 }
 
 const PodcastItemMini: React.FC<PodcastItemMiniProps> = ({ podcast }) => {
+  const navigation = useNavigation<StackNavigationProp<RootParamList>>();
+
   return (
-    <View style={styles.itemContainer}>
-      <View style={styles.thumbnailContainer}>
-        <Image source={{ uri: podcast.thumbnailUrl || '' }} style={styles.thumbnail} />
-        <Text style={styles.duration}>{DateUtil.formatTimeDuration(podcast.duration)}</Text>
-      </View>
-      <View style={styles.infoContainer}>
-        <View style={styles.textContainer}>
-          <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
-              {podcast.title}
-          </Text>
-          <Text style={styles.subtitle}>
-            {podcast.views} views · {DateUtil.formatDateToTimeAgo(new Date(podcast.createdDay))}
-          </Text>
+    <TouchableOpacity onPress={() => navigation.navigate('Podcast', { podcast })}>
+      <View style={styles.itemContainer}>
+        <View style={styles.thumbnailContainer}>
+          <Image source={{ uri: podcast.thumbnailUrl || '' }} style={styles.thumbnail} />
+          <Text style={styles.duration}>{DateUtil.formatTimeDuration(podcast.duration)}</Text>
         </View>
+        <View style={styles.infoContainer}>
+          <View style={styles.textContainer}>
+            <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">
+                {podcast.title}
+            </Text>
+            <Text style={styles.subtitle}>
+              {podcast.views} views · {DateUtil.formatDateToTimeAgo(new Date(podcast.createdDay))}
+            </Text>
+          </View>
+        </View>
+        <TouchableOpacity style={styles.menuBtn}>
+          <Icon name="ellipsis-vertical" size={20} color="#000" />
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.menuBtn}>
-        <Icon name="ellipsis-vertical" size={20} color="#000" />
-      </TouchableOpacity>
-    </View>
+    </TouchableOpacity>
   );
 }
 
