@@ -10,7 +10,8 @@ interface GenresTabNavigationProps {
 }
 
 const GenresTabNavigation: React.FC<GenresTabNavigationProps> = ({ selectedTab, onSelectTab, genres, animatedStyle }) => {
-  const tabs = ["All", ...genres.map((genre) => genre.name)];
+  // const tabs = ["All", ...genres.map((genre) => genre.name)];
+  const tabs = [{ id: 'All', name: 'All' }, ...genres];
   const scrollViewRef = useRef<ScrollView>(null);
 
   return (
@@ -24,15 +25,15 @@ const GenresTabNavigation: React.FC<GenresTabNavigationProps> = ({ selectedTab, 
       >
         {tabs.map((tab) => (
           <TouchableOpacity
-            key={tab}
+            key={tab.id}
             style={[
               styles.tab,
-              selectedTab === tab ? styles.selectedTab : styles.unselectedTab,
+              selectedTab === tab.id ? styles.selectedTab : styles.unselectedTab,
             ]}
-            onPress={() => onSelectTab(tab)}
+            onPress={() => onSelectTab(tab.id)}
           >
-            <Text style={selectedTab === tab ? styles.selectedTabText : styles.unselectedTabText}>
-              {tab}
+            <Text style={selectedTab === tab.id ? styles.selectedTabText : styles.unselectedTabText}>
+              {tab.name}
             </Text>
           </TouchableOpacity>
         ))}
