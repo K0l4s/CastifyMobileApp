@@ -22,10 +22,15 @@ const HomeScreen = () => {
   const lastScrollY = useRef(0);
   const scrollDirection = useRef<'up' | 'down'>('down');
 
-  const fetchPodcasts = async (page: number) => {
+  const fetchPodcasts = async (page: number, genreId?: string) => {
     try {
-      const response = await PodcastService.getRecentPodcasts(page, 10);
-      setPodcasts((prevPodcasts) => [...prevPodcasts, ...response.content]);
+      if (page === 0) setLoading(true);
+      const response =
+        genreId && genreId !== 'All'
+          ? await PodcastService.getPodcastsByGenre(genreId, page, 10)
+          : await PodcastService.getRecentPodcasts(page, 10);
+
+      setPodcasts((prev) => (page === 0 ? response.content : [...prev, ...response.content]));
       setTotalPages(response.totalPages);
     } catch (error) {
       console.error('Error retrieving podcasts from server', error);
@@ -48,8 +53,8 @@ const HomeScreen = () => {
   }, []);
 
   useEffect(() => {
-    fetchPodcasts(page);
-  }, [page]);
+    fetchPodcasts(page, selectedTab);
+  }, [page, selectedTab]);
 
   const handleLoadMore = () => {
     if (!isFetchingMore && page < totalPages - 1) {
@@ -58,9 +63,11 @@ const HomeScreen = () => {
     }
   };
 
-  const handleTabSelect = (tab: string) => {
-    setSelectedTab(tab);
-    // Add logic to filter podcasts
+  const handleTabSelect = (selectedGenreId: string) => {
+    setSelectedTab(selectedGenreId);
+    setPodcasts([]);
+    setPage(0);
+    fetchPodcasts(0, selectedGenreId);
   };
 
   scrollY.addListener(({ value }) => {
@@ -94,7 +101,7 @@ const HomeScreen = () => {
       <Animated.View style={[styles.headerContainer, animatedStyle]}>
         <Header 
           selectedTab={selectedTab}
-          onSelectTab={handleTabSelect}
+          onSelectTab={(genreId) => handleTabSelect(genreId)}
           genres={genres}
           animatedStyle={animatedStyle}
         />
