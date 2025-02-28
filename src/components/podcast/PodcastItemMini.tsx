@@ -6,6 +6,8 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootParamList } from '../../type/navigationType';
+import Toast from 'react-native-toast-message';
+import { useBottomSheet } from '../../context/BottomSheetContext';
 
 interface PodcastItemMiniProps {
   podcast: Podcast;
@@ -13,6 +15,13 @@ interface PodcastItemMiniProps {
 
 const PodcastItemMini: React.FC<PodcastItemMiniProps> = ({ podcast }) => {
   const navigation = useNavigation<StackNavigationProp<RootParamList>>();
+  const { showBottomSheet } = useBottomSheet();
+
+  const bottomSheetOptions = [
+    { label: 'Add to playlist', onPress: () => Toast.show({ type: 'info', text1: "Coming soon!"}) },
+    { label: 'Share', onPress: () => Toast.show({ type: 'info', text1: "Coming soon!"}) },
+    { label: 'Report', onPress: () => Toast.show({ type: 'info', text1: "Coming soon!"}) },
+  ];
 
   return (
     <TouchableOpacity onPress={() => navigation.navigate('Podcast', { podcast })}>
@@ -31,7 +40,7 @@ const PodcastItemMini: React.FC<PodcastItemMiniProps> = ({ podcast }) => {
             </Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.menuBtn}>
+        <TouchableOpacity style={styles.menuBtn} onPress={() => showBottomSheet(bottomSheetOptions)}>
           <Icon name="ellipsis-vertical" size={20} color="#000" />
         </TouchableOpacity>
       </View>

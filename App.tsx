@@ -16,6 +16,8 @@ import FallbackScreen from './src/screens/FallbackScreen';
 import VerifySuccessScreen from './src/screens/VerifySuccessScreen';
 //import ConversationScreen from './src/screens/ConversationScreen';
 import ChatDetailScreen from './src/screens/ChatDetailScreen';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { BottomSheetProvider } from './src/context/BottomSheetContext';
 
 
 const Stack = createStackNavigator<RootParamList>();
@@ -57,19 +59,23 @@ const App = () => {
 
   return (
     <Provider store={store}>
-      <NavigationContainer linking={linking} fallback={<FallbackScreen />}>
-        <Stack.Navigator screenOptions={{headerShown: false, cardStyle: { backgroundColor: '#fff' }}}>
-          <Stack.Screen name="Splash" component={SplashScreen} />
-          <Stack.Screen name="Main" component={MainScreen} />
-          <Stack.Screen name="Profile" component={ProfileScreen}/>
-          <Stack.Screen name="Podcast" component={PodcastScreen}/>
-          <Stack.Screen name="Verify" component={VerifyScreen}/>
-          <Stack.Screen name="RegisterFinal" component={RegisterFinalScreen}/>
-          <Stack.Screen name="VerifySuccess" component={VerifySuccessScreen}/>
-          <Stack.Screen name="ChatDetailScreen" component={ChatDetailScreen} options={{ title: 'Chat Detail' }} />
-        </Stack.Navigator>
-        <Toast />
-      </NavigationContainer>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <BottomSheetProvider>
+          <NavigationContainer linking={linking} fallback={<FallbackScreen />}>
+            <Stack.Navigator screenOptions={{ headerShown: false, cardStyle: { backgroundColor: '#fff' } }}>
+              <Stack.Screen name="Splash" component={SplashScreen} />
+              <Stack.Screen name="Main" component={MainScreen} />
+              <Stack.Screen name="Profile" component={ProfileScreen} />
+              <Stack.Screen name="Podcast" component={PodcastScreen} />
+              <Stack.Screen name="Verify" component={VerifyScreen} />
+              <Stack.Screen name="RegisterFinal" component={RegisterFinalScreen} />
+              <Stack.Screen name="VerifySuccess" component={VerifySuccessScreen} />
+              <Stack.Screen name="ChatDetailScreen" component={ChatDetailScreen} options={{ title: 'Chat Detail' }} />
+            </Stack.Navigator>
+            <Toast />
+          </NavigationContainer>
+        </BottomSheetProvider>
+      </GestureHandlerRootView>
     </Provider>
   );
 };

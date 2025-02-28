@@ -12,7 +12,7 @@ interface CustomBottomSheetProps {
 const CustomBottomSheet: React.FC<CustomBottomSheetProps> = ({ sheetRef, options, isVisible, onClose }) => {
   // Calculate the height of the bottom sheet based on the number of options
   const optionHeight = 50;
-  const snapPoints = useMemo(() => [options.length * optionHeight], [options.length]);
+  const snapPoints = useMemo(() => [Math.max(options.length * optionHeight, 100)], [options.length]);
 
   // callbacks
   const handleSheetChanges = useCallback((index: number) => {
@@ -36,7 +36,7 @@ const CustomBottomSheet: React.FC<CustomBottomSheetProps> = ({ sheetRef, options
       )}
       <BottomSheet
         ref={sheetRef}
-        index={isVisible ? 1 : -1}
+        index={isVisible ? 0 : -1}
         snapPoints={snapPoints}
         onChange={handleSheetChanges}
         enablePanDownToClose={true}
