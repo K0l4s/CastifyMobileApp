@@ -23,40 +23,6 @@ class UserService {
     formData.append('avatar', avatar);
     return await axiosInstanceFile.put(`/api/v1/user/avatar`, formData);
   }
-
-  
-  // static async searchPodcasts(keyword: string, pageNumber = 0, pageSize = 10) {
-  //   try {
-  //     const response = await axiosInstance.get<PodcastResponse>("/api/v1/search/post", {
-  //       params: {
-  //         pageNumber,
-  //         pageSize,
-  //         keyword
-  //       }
-  //     });
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error("Error searching podcasts:", error);
-  //     throw error;
-  //   }
-  // }
-
-  // static async searchUsers(keyword: string, pageNumber = 0, pageSize = 10) {
-  //   // try {
-  //     // const response = await axiosInstance.get<userCard>("/api/v1/search/user", {
-  //     //   params: {
-  //     //     pageNumber,
-  //     //     pageSize,
-  //     //     keyword
-  //     //   }
-  //     return axiosInstance.get(`/api/v1/search/user?pageNumber=${pageNumber}&pageSize=${pageSize}&keyword=${keyword}`);
-  //   //   });
-  //   //   return response.data;
-  //   // } catch (error) {
-  //   //   console.error("Error searching users:", error);
-  //   //   throw error;
-  //   // }
-  // }
   
   static async searchUsers(keyword: string, pageNumber = 0, pageSize = 10) {
     try {
@@ -70,7 +36,10 @@ class UserService {
 
   static async searchPodcasts(keyword: string, pageNumber = 0, pageSize = 10) {
     try {
-      const response = await axiosInstance.get(`/api/v1/search/post?pageNumber=${pageNumber}&pageSize=${pageSize}&keyword=${keyword}`);
+      const response = await axiosInstance.get<PodcastResponse>(`/api/v1/search/post?pageNumber=${pageNumber}&pageSize=${pageSize}&keyword=${keyword}`);
+      response.data.content.forEach(podcast => {
+        podcast.videoUrl = `${BaseApi}/api/v1/podcast/video?path=${encodeURIComponent(podcast.videoUrl)}`;
+      });
       return response.data;
     } catch (error) {
       console.error("Error searching podcasts:", error);
