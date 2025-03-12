@@ -23,7 +23,6 @@ const PodcastItem: React.FC<PodcastItemProps> = ({ podcast }) => {
     { label: 'Share', onPress: () => Toast.show({ type: 'info', text1: "Coming soon!"}) },
     { label: 'Report', onPress: () => Toast.show({ type: 'info', text1: "Coming soon!"}) },
   ];
-
   return (
     <View style={styles.itemContainer}>
       <TouchableOpacity onPress={() => navigation.navigate('Podcast', { podcast })}>

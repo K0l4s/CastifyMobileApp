@@ -13,9 +13,24 @@ import Video, { VideoRef } from 'react-native-video';
 type PodcastScreenRouteProp = RouteProp<RootParamList, 'Podcast'>;
 type PodcastScreenNavigationProp = StackNavigationProp<RootParamList, 'Podcast'>;
 
-const PodcastScreen: React.FC = () => {
-  const route = useRoute<PodcastScreenRouteProp>();
-  const navigation = useNavigation<PodcastScreenNavigationProp>();
+interface Podcast {
+  id: string;
+  title: string;
+  videoUrl: string;
+  thumbnailUrl?: string;
+  views?: number;
+  duration?: string;
+  content?: string;
+}
+
+interface PodcastScreenProps {
+  route: RouteProp<RootParamList, 'Podcast'>;
+  navigation: StackNavigationProp<RootParamList, 'Podcast'>;
+}
+
+const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
+  //const route = useRoute<PodcastScreenRouteProp>();
+  //const navigation = useNavigation<PodcastScreenNavigationProp>();
   const { podcast } = route.params;
   const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(true);
