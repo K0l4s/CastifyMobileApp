@@ -18,27 +18,28 @@ const SplashScreen = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      // Check if access_token is still valid ?
-      const valid = await AuthenticateService.IsTokenValid();
+      try {
+        // Check if access_token is still valid ?
+        const valid = await AuthenticateService.IsTokenValid();
 
-      // If valid, dispatch login action
-      if (valid) {
-        dispatch(login());
-        const data = await UserService.getUserByToken();
-        dispatch(setUser(data));
-        return;
-      } else {
-        // If expired, call refresh token api
-        const response = await AuthenticateService.refreshToken();
-
-        if (response) {
+        // If valid, dispatch login action
+        if (valid) {
           dispatch(login());
           const data = await UserService.getUserByToken();
           dispatch(setUser(data));
-          return;
+        } else {
+          // If expired, call refresh token api
+          const response = await AuthenticateService.refreshToken();
+
+          if (response) {
+            dispatch(login());
+            const data = await UserService.getUserByToken();
+            dispatch(setUser(data));
+          }
         }
+      } catch (error) {
+        console.error('Error during authentication:', error);
       }
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate a 2-second loading time
     };
 
     const timeoutId = setTimeout(() => {
@@ -49,7 +50,7 @@ const SplashScreen = () => {
       clearTimeout(timeoutId);
       navigation.replace('Main');
     });
-    
+
     return () => clearTimeout(timeoutId); // Clear timeout when component unmounts
   }, [navigation]);
 
