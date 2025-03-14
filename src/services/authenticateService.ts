@@ -118,6 +118,59 @@ class AuthenticateService {
       });
     }
   }
+
+  static async refreshToken() {
+    try {
+      const credentials = await Keychain.getGenericPassword();
+      if (credentials) {
+        const tokenData = JSON.parse(credentials.password);
+        const refresh_token = tokenData.refresh_token;
+
+        const response = await axiosInstance.post(
+          '/api/v1/auth/refresh-token',
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${refresh_token}`,
+            }
+          }
+        );
+
+        if (response.status === 200) {
+          const {access_token, refresh_token} = response.data;
+          await Keychain.setGenericPassword(
+            'tokenData',
+            JSON.stringify({access_token, refresh_token}),
+          );
+
+          Toast.show({ type: 'success', text1: 'Token refreshed successfully!' });
+          return response.data;
+        } 
+      }
+      else {
+        throw new Error('No token found in Keychain');
+      }
+    } catch (err: any) {
+      console.error('Refresh token error:', err.message);
+      throw err;
+    }
+  }
+
+  static async IsTokenValid() {
+    try {
+      const credentials = await Keychain.getGenericPassword();
+      if (credentials) {
+        const tokenData = JSON.parse(credentials.password);
+        const access_token = tokenData.access_token;
+
+        const response = await axiosInstance.post(`/api/v1/auth/check-token?token=${access_token}`);
+        return response.data.valid;
+      }
+    } catch (error) {
+      console.error('Error checking token validation:', error);
+      throw error
+    }
+  }
 }
 
 export default AuthenticateService;

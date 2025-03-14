@@ -6,6 +6,8 @@ import { RootParamList } from '../type/navigationType';
 import * as Keychain from 'react-native-keychain';
 import { useDispatch } from 'react-redux';
 import { login, setUser } from '../redux/reducer/authSlice';
+import AuthenticateService from '../services/authenticateService';
+import UserService from '../services/userService';
 
 // Import images
 const appLogo = require('../assets/images/logo.png');
@@ -16,17 +18,39 @@ const SplashScreen = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      // Placeholder function for loading data
+      // Check if access_token is still valid ?
+      const valid = await AuthenticateService.IsTokenValid();
+
+      // If valid, dispatch login action
+      if (valid) {
+        dispatch(login());
+        const data = await UserService.getUserByToken();
+        dispatch(setUser(data));
+        return;
+      } else {
+        // If expired, call refresh token api
+        const response = await AuthenticateService.refreshToken();
+
+        if (response) {
+          dispatch(login());
+          const data = await UserService.getUserByToken();
+          dispatch(setUser(data));
+          return;
+        }
+      }
       await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate a 2-second loading time
     };
 
-    loadData().then(() => {
-      const timer = setTimeout(() => {
-        navigation.replace('Main');
-      }, 3000); // 3 secs
+    const timeoutId = setTimeout(() => {
+      navigation.replace('Main');
+    }, 20000); // 20 secs
 
-      return () => clearTimeout(timer); // Clear timer when component unmounts
+    loadData().then(() => {
+      clearTimeout(timeoutId);
+      navigation.replace('Main');
     });
+    
+    return () => clearTimeout(timeoutId); // Clear timeout when component unmounts
   }, [navigation]);
 
   return (
