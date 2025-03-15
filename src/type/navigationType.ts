@@ -10,4 +10,5 @@ export type RootParamList = {
   VerifySuccess: undefined,
   ChatScreen: undefined,
   ChatDetailScreen: { conversationId: string }
+  Create: undefined,
 }

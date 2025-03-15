@@ -18,6 +18,7 @@ import VerifySuccessScreen from './src/screens/VerifySuccessScreen';
 import ChatDetailScreen from './src/screens/ChatDetailScreen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetProvider } from './src/context/BottomSheetContext';
+import CreateScreen from './src/screens/CreateScreen';
 
 
 const Stack = createStackNavigator<RootParamList>();
@@ -71,6 +72,7 @@ const App = () => {
               <Stack.Screen name="RegisterFinal" component={RegisterFinalScreen} />
               <Stack.Screen name="VerifySuccess" component={VerifySuccessScreen} />
               <Stack.Screen name="ChatDetailScreen" component={ChatDetailScreen} options={{ title: 'Chat Detail' }} />
+              <Stack.Screen name="Create" component={CreateScreen} />
             </Stack.Navigator>
             <Toast />
           </NavigationContainer>
