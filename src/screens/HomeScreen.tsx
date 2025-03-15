@@ -1,11 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Animated, FlatList, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Animated, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
 import Header from '../components/header/Header';
 import PodcastItem from '../components/podcast/PodcastItem';
 import { Podcast } from '../models/PodcastModel';
 import PodcastService from '../services/podcastService';
 import GenreService from '../services/genreService';
-import GenresTabNavigation from '../components/podcast/GenresTabNavigation';
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
@@ -13,6 +12,7 @@ const HomeScreen = () => {
   const [podcasts, setPodcasts] = useState<Podcast[]>([]);
   const [genres, setGenres] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [page, setPage] = useState(0);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [totalPages, setTotalPages] = useState(1);
@@ -37,6 +37,7 @@ const HomeScreen = () => {
     } finally {
       setLoading(false);
       setIsFetchingMore(false);
+      setRefreshing(false);
     }
   };
 
@@ -61,6 +62,12 @@ const HomeScreen = () => {
       setIsFetchingMore(true);
       setPage((prevPage) => prevPage + 1);
     }
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    setPage(0);
+    fetchPodcasts(0, selectedTab);
   };
 
   const handleTabSelect = (selectedGenreId: string) => {
@@ -126,6 +133,14 @@ const HomeScreen = () => {
             onEndReached={handleLoadMore}
             onEndReachedThreshold={0.5}
             ListFooterComponent={isFetchingMore ? <ActivityIndicator size="small" color="#0000ff" /> : null}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                colors={['#0000ff']}
+                progressViewOffset={100}
+              />
+            }
           />
         </>
       )}

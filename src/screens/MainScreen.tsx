@@ -21,6 +21,7 @@ const MainScreen = () => {
         tabBarPosition="bottom"
         screenOptions={({ route }) => ({
           headerShown: false,
+          swipeEnabled: false,
           tabBarShowLabel: true,
           tabBarStyle: { backgroundColor: '#fff' },
           tabBarLabel: ({ focused, color }) => {
