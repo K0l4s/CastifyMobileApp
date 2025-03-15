@@ -2,14 +2,14 @@ import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 
-interface CustomBottomSheetProps {
+interface OptionsBottomSheetProps {
   sheetRef: React.RefObject<BottomSheet>;
   options: { label: string; onPress: () => void }[];
   isVisible: boolean;
   onClose: () => void;
 }
 
-const CustomBottomSheet: React.FC<CustomBottomSheetProps> = ({ sheetRef, options, isVisible, onClose }) => {
+const OptionsBottomSheet: React.FC<OptionsBottomSheetProps> = ({ sheetRef, options, isVisible, onClose }) => {
   // Calculate the height of the bottom sheet based on the number of options
   const optionHeight = 50;
   const snapPoints = useMemo(() => [Math.max(options.length * optionHeight, 100)], [options.length]);
@@ -79,4 +79,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CustomBottomSheet;
+export default OptionsBottomSheet;
