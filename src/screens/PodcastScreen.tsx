@@ -9,6 +9,9 @@ import Orientation from 'react-native-orientation-locker';
 import { RootParamList } from '../type/navigationType';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Video, { VideoRef } from 'react-native-video';
+import CommentSection from '../components/podcast/CommentSection';
+import BottomSheet from '@gorhom/bottom-sheet';
+import { useBottomSheet } from '../context/BottomSheetContext';
 
 type PodcastScreenRouteProp = RouteProp<RootParamList, 'Podcast'>;
 type PodcastScreenNavigationProp = StackNavigationProp<RootParamList, 'Podcast'>;
@@ -35,7 +38,10 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(true);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false); // Trạng thái để quản lý overlay
   const videoRef = useRef<VideoRef>(null);
+
+  const { showCommentSection, hideBottomSheet } = useBottomSheet();
 
   const handleShare = async () => {
     try {
@@ -57,8 +63,25 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
     setIsFullScreen(!isFullScreen);
   };
 
+  const handleOpenComments = () => {
+    setIsBottomSheetOpen(true);
+    showCommentSection(podcast.id);
+  };
+
+  const handleCloseComments = () => {
+    setIsBottomSheetOpen(false); // Ẩn overlay khi đóng BottomSheet
+    hideBottomSheet();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
+      {/* {isBottomSheetOpen && (
+        <TouchableOpacity
+          style={styles.overlay}
+          activeOpacity={1}
+          onPress={handleCloseComments} // Đóng BottomSheet khi nhấn vào overlay
+        />
+      )} */}
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.headerButton} 
@@ -83,12 +106,11 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
             source={{ uri: podcast.videoUrl, headers: { 'X-Mobile-App': 'true' } }}
             style={styles.video}
             controls
-            resizeMode="cover"
+            resizeMode="contain"
             onBuffer={({ isBuffering }) => setIsBuffering(isBuffering)}
             onProgress={() => setIsPlaying(true)}
             onEnd={() => setIsPlaying(false)}
             poster={podcast.thumbnailUrl || ""}
-            posterResizeMode="cover"
           />
           {isBuffering && (
             <View style={styles.bufferingContainer}>
@@ -116,6 +138,11 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
           <Text style={styles.description}>{podcast.content}</Text>
         </View>
       </ScrollView>
+
+      {/* Comment section */}
+      <TouchableOpacity style={styles.commentPreview} onPress={handleOpenComments}>
+        <Text style={styles.commentPreviewText}>View Comments</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -124,6 +151,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Màu nền mờ
+    zIndex: 1, // Đảm bảo overlay nằm trên các thành phần khác
   },
   header: {
     flexDirection: 'row',
@@ -145,7 +181,7 @@ const styles = StyleSheet.create({
   videoContainer: {
     position: 'relative',
     width: '100%',
-    height: 250,
+    height: 200,
     backgroundColor: '#000',
   },
   video: {
@@ -197,6 +233,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#4a4a4a',
     lineHeight: 24,
+  },
+  commentPreview: {
+    padding: 16,
+    backgroundColor: '#f0f0f0',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  commentPreviewText: {
+    color: '#007BFF',
+    fontWeight: 'bold',
   },
 });
 
