@@ -101,9 +101,29 @@ const SearchModal: React.FC<SearchModalProps> = ({ visible, onClose }) => {
     setUserResults([])
   }
 
+  const handleTabChange = (tab: 'users' | 'podcasts') => {
+    setActiveTab(tab);
+    // Reset data
+    setPostResults([]);
+    setUserResults([]);
+    setPostPage(0);
+    setUserPage(0);
+    setTotalPostPages(0);
+    setTotalUserPages(0);
+    
+    // Fetch new data if there's a search query
+    if (searchQuery.trim()) {
+      if (tab === 'users') {
+        fetchUsers(searchQuery, 0);
+      } else {
+        fetchPosts(searchQuery, 0);
+      }
+    }
+  };
+
   const renderUserSection = () => (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Users</Text>
+      {/* <Text style={styles.sectionTitle}>Users</Text> */}
       <FlatList
         data={userResults || []}
         keyExtractor={(item) => item.id.toString()}
@@ -135,7 +155,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ visible, onClose }) => {
 
   const renderPodcastSection = () => (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Podcasts</Text>
+      {/* <Text style={styles.sectionTitle}>Podcasts</Text> */}
       <FlatList
         data={postResults || []}
         keyExtractor={(item) => item.id.toString()}
@@ -198,13 +218,13 @@ const SearchModal: React.FC<SearchModalProps> = ({ visible, onClose }) => {
           <View style={styles.tabContainer}>
             <TouchableOpacity 
               style={[styles.tab, activeTab === 'users' && styles.activeTab]}
-              onPress={() => setActiveTab('users')}
+              onPress={() => handleTabChange('users')}
             >
               <Text style={[styles.tabText, activeTab === 'users' && styles.activeTabText]}>Users</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.tab, activeTab === 'podcasts' && styles.activeTab]}
-              onPress={() => setActiveTab('podcasts')}
+              onPress={() => handleTabChange('podcasts')}
             >
               <Text style={[styles.tabText, activeTab === 'podcasts' && styles.activeTabText]}>Podcasts</Text>
             </TouchableOpacity>

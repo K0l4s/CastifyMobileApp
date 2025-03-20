@@ -9,11 +9,17 @@ interface UserItemProps {
 const UserItem: React.FC<UserItemProps> = ({ user }) => {
   return (
     <TouchableOpacity style={styles.container}>
-      <Image source={{ uri: user.avatarUrl }} style={styles.avatar} />
-      <View style={styles.info}>
-        <Text style={styles.username}>{user.username}</Text>
-        <Text style={styles.fullName}>{user.fullname}</Text>
+      <View style={styles.avatarContainer}>
+        <Image source={{ uri: user.avatarUrl }} style={styles.avatar} />
       </View>
+      <View style={styles.info}>
+        <Text style={styles.fullName}>{user.fullname}</Text>
+        <Text style={styles.username}>{user.username}</Text>
+        <Text style={styles.stats}>{user.totalFollower || 0} followers {" "} {user.totalPost || 0} Podcasts</Text>
+      </View>
+      <TouchableOpacity style={styles.followButton}>
+        <Text style={styles.followText}>Follow</Text>
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 };
@@ -22,25 +28,52 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    padding: 12,
+    backgroundColor: '#fff',
+    marginVertical: 4,
+    borderRadius: 8,
+  },
+  avatarContainer: {
+    backgroundColor: '#f0f0f0',
+    borderRadius: 25,
+    padding: 2,
   },
   avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 45,
+    height: 45,
+    borderRadius: 22.5,
+    backgroundColor: '#fff',
   },
   info: {
-    marginLeft: 10,
+    flex: 1,
+    marginLeft: 12,
   },
   username: {
-    fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 13,
+    color: '#666',
+    marginTop: 2,
   },
   fullName: {
+    fontWeight: '600',
+    fontSize: 15,
+    color: '#000',
+  },
+  stats: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 2,
+  },
+  followButton: {
+    backgroundColor: '#000',
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginLeft: 8,
+  },
+  followText: {
+    color: '#fff',
     fontSize: 14,
-    color: 'gray',
+    fontWeight: '500',
   },
 });
 
