@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { 
   View, TextInput, StyleSheet, Modal, TouchableOpacity, Text, 
-  FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView 
+  FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView,
+  Dimensions
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { debounce } from 'lodash';
@@ -25,6 +26,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ visible, onClose }) => {
   const [postPage, setPostPage] = useState(0);
   const [totalUserPages, setTotalUserPages] = useState(0);
   const [totalPostPages, setTotalPostPages] = useState(0);
+  const [activeTab, setActiveTab] = useState<'users' | 'podcasts'>('users');
 
   useEffect(() => {
     if (!visible) {
@@ -191,6 +193,22 @@ const SearchModal: React.FC<SearchModalProps> = ({ visible, onClose }) => {
               )}
             </View>
           </View>
+
+          {/* Tab Navigation */}
+          <View style={styles.tabContainer}>
+            <TouchableOpacity 
+              style={[styles.tab, activeTab === 'users' && styles.activeTab]}
+              onPress={() => setActiveTab('users')}
+            >
+              <Text style={[styles.tabText, activeTab === 'users' && styles.activeTabText]}>Users</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.tab, activeTab === 'podcasts' && styles.activeTab]}
+              onPress={() => setActiveTab('podcasts')}
+            >
+              <Text style={[styles.tabText, activeTab === 'podcasts' && styles.activeTabText]}>Podcasts</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {loading ? (
@@ -203,8 +221,8 @@ const SearchModal: React.FC<SearchModalProps> = ({ visible, onClose }) => {
             style={styles.resultsContainer}
             showsVerticalScrollIndicator={false}
           >
-            {renderUserSection()}
-            {renderPodcastSection()}
+            {activeTab === 'users' && renderUserSection()}
+            {activeTab === 'podcasts' && renderPodcastSection()}
           </ScrollView>
         )}
       </KeyboardAvoidingView>
@@ -255,6 +273,7 @@ const styles = StyleSheet.create({
   resultsContainer: {
     flex: 1,
     paddingHorizontal: 12,
+    backgroundColor: '#f8f9fa',
   },
   section: {
     marginBottom: 16,
@@ -305,6 +324,30 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 16,
     color: '#666',
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    backgroundColor: '#fff',
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  activeTab: {
+    borderBottomWidth: 2,
+    borderBottomColor: '#007AFF',
+  },
+  tabText: {
+    fontSize: 16,
+    color: '#666',
+    fontWeight: '500',
+  },
+  activeTabText: {
+    color: '#007AFF',
+    fontWeight: '600',
   },
 });
 
