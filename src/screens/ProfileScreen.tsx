@@ -13,7 +13,7 @@ import PodcastItemMini from '../components/podcast/PodcastItemMini';
 import EditProfileModal from '../components/modals/EditProfileModal';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import CustomBottomSheet from '../components/common/CustomBottomSheet';
+import CustomBottomSheet from '../components/common/OptionsBottomSheet';
 import AuthenticateService from '../services/authenticateService';
 import { logout } from '../redux/reducer/authSlice';
 import { defaultAvatar, defaultCover } from '../utils/fileUtil';
