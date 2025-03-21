@@ -34,7 +34,8 @@ const ChatDetailScreen = () => {
   const fetchMessages = async () => {
     try {
       const response = await conversationService.getMsgByConversationId(conversationId, 0, 20);
-      setMessages(response.data.data.reverse());
+      // setMessages(response.data.data.reverse());
+      setMessages((prevMessages) => [...response.data.data, ...prevMessages]);
     } catch (error) {
       console.error('Lỗi tải tin nhắn:', error);
     }
@@ -58,14 +59,15 @@ const ChatDetailScreen = () => {
 
   useEffect(() => {
     navigation.setOptions({
-      title: 'Hội này vui nè',
+      title: "Hội thoại",
       headerLeft: () => (
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 16 }}>
-          <Text style={{ fontSize: 16, color: 'blue' }}>← Quay lại</Text>
+          <Text style={{ fontSize: 20 }}>←</Text>
         </TouchableOpacity>
       ),
     });
   }, [navigation]);
+  
 
   useEffect(() => {
     scrollToBottom();
@@ -87,19 +89,20 @@ const ChatDetailScreen = () => {
                   style={{ width: 40, height: 40, borderRadius: 20, marginRight: 10 }}
                 />
               )}
-              <View style={{
+                <View style={{
                 maxWidth: '75%',
                 backgroundColor: isMyMessage ? '#4D90FE' : '#E5E5E5',
                 padding: 10,
                 borderRadius: 15,
-                alignSelf: isMyMessage ? 'flex-end' : 'flex-start'
-              }}>
+                alignSelf: isMyMessage ? 'flex-end' : 'flex-start',
+                marginLeft: isMyMessage ? 'auto' : 0
+                }}>
                 {!isMyMessage && <Text style={{ fontWeight: 'bold', marginBottom: 3 }}>{item.sender.fullname}</Text>}
                 <Text style={{ color: isMyMessage ? 'white' : 'black' }}>{item.content}</Text>
                 <Text style={{ fontSize: 10, color: 'gray', marginTop: 5 }}>
                   {DateUtil.formatDateToTimeAgo(new Date(item.timestamp))}
                 </Text>
-              </View>
+                </View>
             </View>
           );
         }}

@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import HomeScreen from '../screens/HomeScreen';
 import FollowingScreen from './FollowingScreen';
 import ChatScreen from './ChatScreen';
-import InboxScreen from './InboxScreen';
+import InboxScreen from './NotificationScreen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { enableScreens } from 'react-native-screens';
 import Icon from 'react-native-vector-icons/Ionicons';
