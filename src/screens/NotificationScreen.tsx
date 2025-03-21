@@ -74,11 +74,6 @@ const NotificationScreen: React.FC = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Thông báo</Text>
-        {/* Nếu cần nút back:
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={{ color: 'blue' }}>Back</Text>
-        </TouchableOpacity>
-        */}
       </View>
 
       <FlatList
