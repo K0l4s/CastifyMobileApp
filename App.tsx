@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
-import {LinkingOptions, NavigationContainer, useNavigation} from '@react-navigation/native';
-import {createStackNavigator} from '@react-navigation/stack';
+
+import React, { useEffect, useState } from 'react';
+import { LinkingOptions, NavigationContainer, useNavigation } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 import SplashScreen from './src/screens/SplashScreen';
 import MainScreen from './src/screens/MainScreen';
 import { RootParamList } from './src/type/navigationType';
@@ -18,11 +19,10 @@ import VerifySuccessScreen from './src/screens/VerifySuccessScreen';
 import ChatDetailScreen from './src/screens/ChatDetailScreen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetProvider } from './src/context/BottomSheetContext';
+import NotificationScreen from './src/screens/NotificationScreen';
 import CreateScreen from './src/screens/CreateScreen';
-
-
 const Stack = createStackNavigator<RootParamList>();
-
+import useStomp from './src/hooks/useStomp';
 // Cấu hình Deep Link
 const linking: LinkingOptions<RootParamList> = {
   prefixes: ["castify://", "https://castify.vercel.app"], // Các URL scheme
@@ -58,6 +58,7 @@ const App = () => {
     };
   }, []);
 
+
   return (
     <Provider store={store}>
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -71,7 +72,8 @@ const App = () => {
               <Stack.Screen name="Verify" component={VerifyScreen} />
               <Stack.Screen name="RegisterFinal" component={RegisterFinalScreen} />
               <Stack.Screen name="VerifySuccess" component={VerifySuccessScreen} />
-              <Stack.Screen name="ChatDetailScreen" component={ChatDetailScreen} options={{ title: 'Chat Detail' }} />
+              <Stack.Screen name="Notification" component={NotificationScreen} />
+              <Stack.Screen name="ChatDetailScreen" component={ChatDetailScreen} options={{ headerShown: true }} />
               <Stack.Screen name="Create" component={CreateScreen} />
             </Stack.Navigator>
             <Toast />
