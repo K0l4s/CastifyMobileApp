@@ -1,8 +1,6 @@
 {
   "compilerOptions": {
-    "strict": true
-  },
-  "include": ["src", "src/global.d.ts"],
+    "types": ["node"],  },
+  "include": ["src", "declarations.d.ts"],
   "extends": "@react-native/typescript-config/tsconfig.json"
-  
 }

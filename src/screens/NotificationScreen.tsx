@@ -46,7 +46,7 @@ const NotificationScreen: React.FC = () => {
       setNotifications(prev => [...prev, ...newNotis]);
       setHasMore(newNotis.length === 5);
     } catch (err) {
-      console.error('Lỗi tải thông báo:', err);
+      // console.error('Lỗi tải thông báo:', err);
     }
     setLoading(false);
   };

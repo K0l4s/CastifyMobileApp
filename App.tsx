@@ -22,7 +22,7 @@ import { BottomSheetProvider } from './src/context/BottomSheetContext';
 import NotificationScreen from './src/screens/NotificationScreen';
 import CreateScreen from './src/screens/CreateScreen';
 const Stack = createStackNavigator<RootParamList>();
-
+import useStomp from './src/hooks/useStomp';
 // Cấu hình Deep Link
 const linking: LinkingOptions<RootParamList> = {
   prefixes: ["castify://", "https://castify.vercel.app"], // Các URL scheme
@@ -57,7 +57,7 @@ const App = () => {
       Linking.removeAllListeners("url");
     };
   }, []);
- 
+
 
   return (
     <Provider store={store}>
