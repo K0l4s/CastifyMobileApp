@@ -88,11 +88,11 @@ useEffect(() => {
               } else if (route.name === 'Chat') {
                 iconName = focused ? 'chatbubble' : 'chatbubble-outline';
               } else if (route.name === 'Notification') {
-                iconName = focused ? 'mail' : 'mail-outline';
+                iconName = focused ? 'notifications' : 'notifications-outline';
               }
 
               const icon = (
-                <Icon name={iconName? iconName : "chatbox"} size={20} color={focused ? '#0c0461' : 'gray'} />
+                <Icon name={iconName? iconName : "gift"} size={20} color={focused ? '#0c0461' : 'gray'} />
               );
 
               if (route.name === 'Notification' && totalUnRead > 0) {
