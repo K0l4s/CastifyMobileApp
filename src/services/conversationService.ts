@@ -6,6 +6,7 @@ export const conversationService = {
         return axiosInstanceAuth.post('/api/v1/conversation/', data);
     },
     getByUserId: async (pageNumber: number, pageSize: number) => {
+        
         return axiosInstanceAuth.get(`/api/v1/conversation?pageNumber=${pageNumber}&pageSize=${pageSize}`);
     },
     getMsgByConversationId: async (conversationId: string, pageNumber: number, pageSize: number) => {

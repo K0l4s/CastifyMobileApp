@@ -9,9 +9,10 @@ import {
   StyleSheet,
   SafeAreaView,
 } from 'react-native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { NotiModel } from '../models/Notification';
 import { NotificationService } from '../services/NotificationService';
+import { RootState } from '../redux/store';
 
 const NotificationScreen: React.FC = () => {
   const dispatch = useDispatch();
@@ -50,13 +51,13 @@ const NotificationScreen: React.FC = () => {
     }
     setLoading(false);
   };
-
+  const userId = useSelector((state:RootState) => state.auth.user?.id); // Lấy userId của mình
   useEffect(() => {
     setNotifications([]);
     setPage(0);
     setHasMore(true);
     fetchNotifications(0);
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     if (page !== 0) {
