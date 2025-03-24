@@ -27,27 +27,32 @@ const ChatDetailScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [scrollOffset, setScrollOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true); // Thêm state này
 
   const flatListRef = useRef<FlatList<Message>>(null);
   const userId = useSelector((state: RootState) => state.auth.user?.id);
 
-  // ────────────────────────────────────────────────────────────────
   const fetchMessages = async (pageToLoad: number) => {
-    if (isLoading) return;
+    if (isLoading || !hasMore) return;
     setIsLoading(true);
     try {
       const response = await conversationService.getMsgByConversationId(conversationId, pageToLoad, 20);
-      const newMsgs = response.data.data;
+      const newMsgs: Message[] = response.data.data;
+
       if (newMsgs.length > 0) {
         setMessages((prev) => [...prev, ...newMsgs]);
 
-        // Chờ FlatList render xong rồi scroll về lại vị trí cũ
+        // Scroll giữ nguyên vị trí cũ sau khi load thêm
         setTimeout(() => {
-          const estimatedHeight = newMsgs.length * 80; // ước lượng mỗi tin nhắn cao 80
+          const estimatedHeight = newMsgs.length * 80; // ước lượng
           flatListRef.current?.scrollToOffset({ offset: scrollOffset + estimatedHeight, animated: false });
         }, 100);
+
+        setPage(pageToLoad);
+        setHasMore(newMsgs.length === 20); // Nếu ít hơn 20 tin → hết rồi
+      } else {
+        setHasMore(false);
       }
-      setPage(pageToLoad);
     } catch (error) {
       console.error('Lỗi tải tin nhắn:', error);
     } finally {
@@ -55,12 +60,9 @@ const ChatDetailScreen = () => {
     }
   };
 
-  // ────────────────────────────────────────────────────────────────
   const handleLoadMore = () => {
-    if (!isLoading) {
-      setIsLoading(true);
+    if (!isLoading && hasMore) {
       fetchMessages(page + 1);
-
     }
   };
 
@@ -69,7 +71,6 @@ const ChatDetailScreen = () => {
     try {
       await conversationService.sendMessage(newMessage, conversationId);
       setNewMessage('');
-      // fetchMessages(0); // Load lại từ đầu (tuỳ backend mày có muốn fetch hay tự thêm vô)
       scrollToBottom();
     } catch (error) {
       console.error('Lỗi gửi tin nhắn:', error);
@@ -94,16 +95,17 @@ const ChatDetailScreen = () => {
       ),
     });
   }, [navigation]);
+
   const object = useStomp({
     subscribeUrl: `/topic/group/${conversationId}`,
     trigger: [conversationId, userId],
-    flag: conversationId ? true : false
+    flag: !!conversationId
   });
 
   useEffect(() => {
     if (object) {
-      const newMessage: Message = object;
-      setMessages((prev) => [newMessage,...prev]);
+      const newMsg: Message = object;
+      setMessages((prev) => [newMsg, ...prev]);
     }
   }, [object]);
 
@@ -112,7 +114,7 @@ const ChatDetailScreen = () => {
       <FlatList
         ref={flatListRef}
         data={messages}
-        inverted={true} 
+        inverted={true}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => {
           const isMyMessage = item.sender.id === userId;
@@ -148,12 +150,16 @@ const ChatDetailScreen = () => {
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.1}
         scrollEventThrottle={16}
-        ListFooterComponent={isLoading ? (
-          <Text style={{ textAlign: 'center', color: 'gray', marginBottom: 10 }}>Đang tải thêm tin nhắn...</Text>
-        ) : null}
+        ListFooterComponent={
+          isLoading && messages.length > 0 ? (
+            <Text style={{ textAlign: 'center', color: 'gray', marginBottom: 10 }}>
+              Đang tải thêm tin nhắn...
+            </Text>
+          ) : null
+        }
       />
 
-      {/* Ô nhập tin nhắn */}
+      {/* Input gửi tin nhắn */}
       <View style={{
         flexDirection: 'row',
         padding: 10,
