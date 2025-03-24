@@ -22,7 +22,10 @@ const NotificationScreen: React.FC = () => {
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const scrollRef = useRef<FlatList>(null);
+
+  const userId = useSelector((state: RootState) => state.auth.user?.id);
 
   const formatTimeCalculation = (time: string) => {
     const date = new Date(time);
@@ -40,18 +43,28 @@ const NotificationScreen: React.FC = () => {
   };
 
   const fetchNotifications = async (currentPage: number) => {
-    setLoading(true);
+    if (currentPage !== 0) setLoading(true);
     try {
       const res = await NotificationService.getAllNotification(currentPage, 5);
       const newNotis = res.data.data;
-      setNotifications(prev => [...prev, ...newNotis]);
+      setNotifications(prev =>
+        currentPage === 0 ? newNotis : [...prev, ...newNotis]
+      );
       setHasMore(newNotis.length === 5);
     } catch (err) {
       // console.error('Lỗi tải thông báo:', err);
     }
     setLoading(false);
   };
-  const userId = useSelector((state:RootState) => state.auth.user?.id); // Lấy userId của mình
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    setPage(0);
+    setHasMore(true);
+    await fetchNotifications(0);
+    setRefreshing(false);
+  };
+
   useEffect(() => {
     setNotifications([]);
     setPage(0);
@@ -66,7 +79,7 @@ const NotificationScreen: React.FC = () => {
   }, [page]);
 
   const handleLoadMore = () => {
-    if (!loading && hasMore) {
+    if (!loading && hasMore && !refreshing) {
       setPage(prev => prev + 1);
     }
   };
@@ -84,11 +97,13 @@ const NotificationScreen: React.FC = () => {
         contentContainerStyle={{ paddingBottom: 20 }}
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.3}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
         ListFooterComponent={
-          loading ? <ActivityIndicator size="small" color="#888" /> : null
+          loading && !refreshing ? <ActivityIndicator size="small" color="#888" /> : null
         }
         ListEmptyComponent={
-          !loading ? (
+          !loading && !refreshing ? (
             <Text style={styles.emptyText}>Không có thông báo nào</Text>
           ) : null
         }
