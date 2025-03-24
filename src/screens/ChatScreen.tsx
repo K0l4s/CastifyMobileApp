@@ -85,7 +85,9 @@ const ChatScreen = () => {
             />
             <View style={styles.chatDetails}>
               <Text style={styles.groupName}>{item.title}</Text>
-              <Text style={[styles.lastMessage, item.unread && styles.unreadMessage]}>
+              <Text style={[styles.lastMessage, 
+                // item.unread && styles.unreadMessage
+                ]}>
                 {item.lastMessage?.sender?.fullname 
                   ? `${item.lastMessage.sender.fullname}: ${item.lastMessage.content}` 
                   : item.lastMessage?.content}
