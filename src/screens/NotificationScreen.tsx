@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { NotiModel } from '../models/Notification';
 import { NotificationService } from '../services/NotificationService';
 import { RootState } from '../redux/store';
+import useStomp from '../hooks/useStomp';
 
 const NotificationScreen: React.FC = () => {
   const dispatch = useDispatch();
@@ -83,7 +84,29 @@ const NotificationScreen: React.FC = () => {
       setPage(prev => prev + 1);
     }
   };
+  const user = useSelector((state: RootState) => state.auth.user);
+  const [message, setNewMessage] = useState<NotiModel>();
+  const stomp = useStomp({
+    subscribeUrl: `/user/${user?.id}/queue/notification`,
+    trigger: [],
+  });
 
+  useEffect(() => {
+    if (stomp) {
+      console.log(stomp);
+      setNewMessage(stomp);
+      // dispatch(setTotalUnRead(totalUnRead + 1));
+    }
+  }, [stomp]);
+  useEffect(() => {
+    if (message) {
+      setNotifications(prev => {
+        const exists = prev.some(n => n.id === message!.id);
+        if (exists) return prev;
+        return [message!, ...prev];
+      });
+    }
+  }, [message]);
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
