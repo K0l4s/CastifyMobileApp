@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { 
   View, TextInput, StyleSheet, Modal, TouchableOpacity, Text, 
   FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView,
@@ -18,6 +18,7 @@ interface SearchModalProps {
 }
 
 const SearchModal: React.FC<SearchModalProps> = ({ visible, onClose }) => {
+  const searchInputRef = useRef<TextInput>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [userResults, setUserResults] = useState<userCard[]>([]);
   const [postResults, setPostResults] = useState<Podcast[]>([]);
@@ -35,6 +36,14 @@ const SearchModal: React.FC<SearchModalProps> = ({ visible, onClose }) => {
       setPostResults([]);
       setUserPage(0);
       setPostPage(0);
+    }
+  }, [visible]);
+
+  useEffect(() => {
+    if (visible) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 100);
     }
   }, [visible]);
 
@@ -196,6 +205,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ visible, onClose }) => {
             <View style={styles.searchInputContainer}>
               <Icon name="search" size={20} color="#666" style={styles.searchIcon} />
               <TextInput
+                ref={searchInputRef}
                 style={styles.searchInput}
                 placeholder="Search users or posts..."
                 placeholderTextColor="#999"
