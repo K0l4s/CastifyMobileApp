@@ -79,6 +79,7 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
         <TouchableOpacity
           style={styles.overlay}
           activeOpacity={1}
+          
           onPress={handleCloseComments} // Đóng BottomSheet khi nhấn vào overlay
         />
       )} */}
