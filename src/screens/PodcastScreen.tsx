@@ -10,8 +10,9 @@ import { RootParamList } from '../type/navigationType';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Video, { VideoRef } from 'react-native-video';
 import CommentSection from '../components/podcast/CommentSection';
-import BottomSheet from '@gorhom/bottom-sheet';
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { useBottomSheet } from '../context/BottomSheetContext';
+import ContentBottomSheet from '../components/podcast/ContentBottomSheet';
 
 type PodcastScreenRouteProp = RouteProp<RootParamList, 'Podcast'>;
 type PodcastScreenNavigationProp = StackNavigationProp<RootParamList, 'Podcast'>;
@@ -40,6 +41,9 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false); // Trạng thái để quản lý overlay
   const videoRef = useRef<VideoRef>(null);
+  const contentRef = useRef<BottomSheet>(null);
+
+  const snapPoints = ['50%', '90%'];
 
   const { showCommentSection, hideBottomSheet } = useBottomSheet();
 
@@ -71,6 +75,14 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
   const handleCloseComments = () => {
     setIsBottomSheetOpen(false); // Ẩn overlay khi đóng BottomSheet
     hideBottomSheet();
+  };
+
+  const handleOpenContent = () => {
+    contentRef.current?.expand();
+  };
+
+  const handleCloseContent = () => {
+    contentRef.current?.close();
   };
 
   return (
@@ -136,9 +148,21 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
             <Icon name={isPlaying ? "pause-circle" : "play-circle"} size={16} color="#666" style={styles.statsIcon} />
             <Text style={styles.statsText}>{isPlaying ? 'Playing' : 'Paused'}</Text>
           </View>
-          <Text style={styles.description}>{podcast.content}</Text>
+          
+          <TouchableOpacity onPress={handleOpenContent} style={styles.descriptionContainer}>
+            <Text style={styles.description} numberOfLines={3}>
+              {podcast.content}
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
+        
+      {/* Sử dụng ContentBottomSheet */}
+      <ContentBottomSheet
+        content={podcast.content || ''}
+        sheetRef={contentRef}
+        onClose={handleCloseContent}
+      />
 
       {/* Comment section */}
       <TouchableOpacity style={styles.commentPreview} onPress={handleOpenComments}>
@@ -230,8 +254,15 @@ const styles = StyleSheet.create({
   statsIcon: {
     marginLeft: 15,
   },
+  descriptionContainer: {
+    borderWidth: 1,
+    borderColor: "#f5f5f5",
+    backgroundColor: "#f5f5f5",
+    borderRadius: 10,
+    padding: 5,
+  },
   description: {
-    fontSize: 16,
+    fontSize: 12,
     color: '#4a4a4a',
     lineHeight: 24,
   },
