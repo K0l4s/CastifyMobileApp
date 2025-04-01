@@ -14,6 +14,8 @@ import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { useBottomSheet } from '../context/BottomSheetContext';
 import ContentBottomSheet from '../components/podcast/ContentBottomSheet';
 import DateUtil from '../utils/dateUtil';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
 
 type PodcastScreenRouteProp = RouteProp<RootParamList, 'Podcast'>;
 type PodcastScreenNavigationProp = StackNavigationProp<RootParamList, 'Podcast'>;
@@ -46,6 +48,8 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
   const contentRef = useRef<BottomSheet>(null);
 
   const snapPoints = ['50%', '90%'];
+
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
 
   const { showCommentSection, hideBottomSheet } = useBottomSheet();
 
@@ -155,9 +159,16 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
       />
 
       {/* Comment section */}
-      <TouchableOpacity style={styles.commentPreview} onPress={handleOpenComments}>
-        <Text style={styles.commentPreviewText}>View Comments</Text>
-      </TouchableOpacity>
+      {isAuthenticated ? (
+        <TouchableOpacity style={styles.commentPreview} onPress={handleOpenComments}>
+          <Text style={styles.commentPreviewText}>View Comments</Text>
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.commentPreview}>
+          <Text style={styles.commentPreviewText}>Please login to view comments</Text>
+        </View>
+      )}
+      
     </SafeAreaView>
   );
 };

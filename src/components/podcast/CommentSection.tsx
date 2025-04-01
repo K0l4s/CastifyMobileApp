@@ -47,11 +47,10 @@ const CommentSection: React.FC<CommentSectionProps> = ({ sheetRef, podcastId, to
 
   const fetchComments = async (pageNumber: number) => {
     if (isLoading || isLoadingMore || !hasMore) return;
-
     pageNumber === 0 ? setIsLoading(true) : setIsLoadingMore(true);
 
     try {
-      const response = await CommentService.getCommentsByPodcast(podcastId, pageNumber, 10);
+      const response = await CommentService.getCommentsByPodcast(podcastId, pageNumber, 10, 'latest', isAuthenticated);
       setComments((prevComments) =>
         pageNumber === 0 ? response.content : [...prevComments, ...response.content]
       );
@@ -65,8 +64,6 @@ const CommentSection: React.FC<CommentSectionProps> = ({ sheetRef, podcastId, to
   };
 
   const fetchReplies = async (commentId: string) => {
-    console.log(commentId); //67eb66ffddbd725479de7655
-
     const parent = comments.find((comment) => comment.id === commentId);
     setParentComment(parent || null);
 
@@ -103,18 +100,40 @@ const CommentSection: React.FC<CommentSectionProps> = ({ sheetRef, podcastId, to
     }
   };
 
-  const toggleLike = (commentId: string) => {
-    setComments((prevComments) =>
-      prevComments.map((comment) =>
-        comment.id === commentId
-          ? {
-              ...comment,
-              liked: !comment.liked,
-              totalLikes: comment.liked ? comment.totalLikes - 1 : comment.totalLikes + 1,
-            }
-          : comment
-      )
-    );
+  const toggleLike = async (commentId: string) => {
+    try {
+      await CommentService.likeComment(commentId);
+  
+      if (selectedCommentId) {
+        // Nếu đang hiển thị replies
+        setReplies((prevReplies) =>
+          prevReplies.map((reply) =>
+            reply.id === commentId
+              ? {
+                  ...reply,
+                  liked: !reply.liked,
+                  totalLikes: reply.liked ? reply.totalLikes - 1 : reply.totalLikes + 1,
+                }
+              : reply
+          )
+        );
+      } else {
+        // Nếu đang hiển thị comments
+        setComments((prevComments) =>
+          prevComments.map((comment) =>
+            comment.id === commentId
+              ? {
+                  ...comment,
+                  liked: !comment.liked,
+                  totalLikes: comment.liked ? comment.totalLikes - 1 : comment.totalLikes + 1,
+                }
+              : comment
+          )
+        );
+      }
+    } catch (error) {
+      console.error(`Failed to like comment ID: ${commentId}`, error);
+    }
   };
 
   const handleShowReplies = (commentId: string) => {
@@ -312,6 +331,16 @@ const CommentSection: React.FC<CommentSectionProps> = ({ sheetRef, podcastId, to
                   </View>
                 </View>
               )}
+              onEndReached={() => {
+                if (hasMore && !isLoadingMore) {
+                  fetchComments(page);
+                }
+              }}
+              onEndReachedThreshold={0.5}
+              ListFooterComponent={
+                isLoadingMore ? <ActivityIndicator size="small" color="#000" /> : null
+              }
+              contentContainerStyle={{ paddingBottom: 80 }}
             />
           )}
         </BottomSheetView>
