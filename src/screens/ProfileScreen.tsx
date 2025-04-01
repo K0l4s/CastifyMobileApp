@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootParamList } from '../type/navigationType';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -18,11 +18,19 @@ import AuthenticateService from '../services/authenticateService';
 import { logout } from '../redux/reducer/authSlice';
 import { defaultAvatar, defaultCover } from '../utils/fileUtil';
 import Toast from 'react-native-toast-message';
+import UserService from '../services/userService';
+
+type ProfileScreenRouteProp = RouteProp<RootParamList, 'Profile'>;
 
 const ProfileScreen: React.FC = () => {
-  const user = useSelector((state: RootState) => state.auth.user);
+  const route = useRoute<ProfileScreenRouteProp>();
+  const { username } = route.params || {};
+  const currentUser = useSelector((state: RootState) => state.auth.user);
+  const isCurrentUser = !username || username === currentUser?.username;
   const dispatch = useDispatch();
   const navigation = useNavigation<StackNavigationProp<RootParamList>>();
+  const [user, setUser] = useState(currentUser);
+  const [isFollowing, setIsFollowing] = useState(user?.follow || false);
   const [selectedTab, setSelectedTab] = useState('Video');
   const [myPodcasts, setMyPodcasts] = useState<Podcast[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,9 +38,14 @@ const ProfileScreen: React.FC = () => {
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
   const sheetRef = useRef<BottomSheet>(null);
 
-  const fullName = `${user?.lastName} ${user?.middleName} ${user?.firstName}`;
+  const fullName = user?.fullname || `${user?.lastName || ''} ${user?.middleName || ''} ${user?.firstName || ''}`.trim();
   const avatarSource = user?.avatarUrl && user.avatarUrl !== '' ? { uri: user.avatarUrl } : defaultAvatar;
   const coverSource = user?.coverUrl && user.coverUrl !== '' ? { uri: user.coverUrl } : defaultCover;
+  useEffect(() => {
+    if (!isCurrentUser) {
+      fetchUserProfile();
+    }
+  }, [username]);
 
   useEffect(() => {
     if (selectedTab === 'Video') {
@@ -40,10 +53,26 @@ const ProfileScreen: React.FC = () => {
     }
   }, [selectedTab]);
 
+  const fetchUserProfile = async () => {
+    try {
+      const response = await UserService.getUserByUsername(username);
+      console.log(response);
+      setUser(response);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
+
   const fetchMyPodcasts = async () => {
     try {
-      const response = await PodcastService.getPodcastBySelf(0, 10);
-      setMyPodcasts(response.content);
+      if (isCurrentUser) {
+        const response = await PodcastService.getPodcastBySelf(0, 10);
+        setMyPodcasts(response.content);
+      }
+      else {
+        const response = await PodcastService.getUserPodcasts(username);
+        setMyPodcasts(response.content);
+      }
     } catch (error) {
       console.error('Error retrieving my podcasts from server', error);
     } finally {
@@ -73,17 +102,35 @@ const ProfileScreen: React.FC = () => {
     }
   };
 
-  const bottomSheetOptions = [
-    { label: 'Share', onPress: () => Toast.show({ type: 'info', text1: "Coming soon!"}) },
-    { label: 'Settings', onPress: () => Toast.show({ type: 'info', text1: "Coming soon!"}) },
-    { label: 'Logout', onPress: () => 
-      { 
-        AuthenticateService.logOut(navigation)
-        dispatch(logout());
-      } 
-    },
-  ];
+  const bottomSheetOptions = isCurrentUser
+  ? [
+      { label: 'Share', onPress: () => Toast.show({ type: 'info', text1: 'Coming soon!' }) },
+      { label: 'Settings', onPress: () => Toast.show({ type: 'info', text1: 'Coming soon!' }) },
+      { label: 'Logout', onPress: () => {
+          AuthenticateService.logOut(navigation);
+          dispatch(logout());
+        },
+      },
+    ]
+  : [
+      { label: 'Share', onPress: () => Toast.show({ type: 'info', text1: 'Coming soon!' }) },
+      { label: 'Report', onPress: () => Toast.show({ type: 'info', text1: 'Reported!' }) },
+    ];
 
+  const handleFollow = async () => {
+    try {
+      if (isFollowing) {
+        // Gọi API để unfollow
+      } else {
+        // Gọi API để follow
+      }
+      setIsFollowing(!isFollowing); // Cập nhật trạng thái
+    } catch (error) {
+      console.error('Error following/unfollowing user:', error);
+      Toast.show({ type: 'error', text1: 'Something went wrong!' });
+    }
+  };
+  
   return (
     <GestureHandlerRootView style={styles.container}>
       <View style={styles.header}>
@@ -103,23 +150,36 @@ const ProfileScreen: React.FC = () => {
           <Text style={styles.fullname}>{fullName}</Text>
           <Text style={styles.username}>@{user?.username}</Text>
           <Text style={styles.stats}>
-            <Text style={styles.statsText}>{user?.followers || "1"} Followers </Text>
+            <Text style={styles.statsText}>{user?.totalFollower} Followers </Text>
             <Text style={styles.statsText}> • </Text>
-            <Text style={styles.statsText}>{user?.podcastCount || "1"} Podcasts</Text>
+            <Text style={styles.statsText}>{user?.totalPost} Podcasts</Text>
           </Text>
         </View>
       </View>
+      
+      {isCurrentUser && (
+        <TouchableOpacity 
+          style={styles.editButton} 
+          onPress={() => { 
+            sheetRef.current?.close();
+            setIsEditModalVisible(true);
+          }}
+        >
+          <Text style={{fontWeight: "bold"}}>Edit your profile</Text>
+          <Icon name="pencil" size={20} color="#000" />
+        </TouchableOpacity>
+      )}
 
-      <TouchableOpacity 
-        style={styles.editButton} 
-        onPress={() => { 
-          sheetRef.current?.close();
-          setIsEditModalVisible(true);
-         }}
-      >
-        <Text style={{fontWeight: "bold"}}>Edit your profile</Text>
-        <Icon name="pencil" size={20} color="#000" />
-      </TouchableOpacity>
+      {!isCurrentUser && (
+        <TouchableOpacity 
+          style={[styles.followButton, isFollowing && styles.unfollowButton]} 
+          onPress={handleFollow}
+        >
+          <Text style={styles.followButtonText}>
+            {isFollowing ? 'Unfollow' : 'Follow'}
+          </Text>
+        </TouchableOpacity>
+      )}
 
       <View style={styles.tabContainer}>
         <TouchableOpacity
@@ -128,12 +188,14 @@ const ProfileScreen: React.FC = () => {
         >
           <Text style={[styles.tabText, selectedTab === 'Video' && styles.activeTabText]}>Video</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tabButton, selectedTab === 'Playlist' && styles.activeTabButton]}
-          onPress={() => setSelectedTab('Playlist')}
-        >
-          <Text style={[styles.tabText, selectedTab === 'Playlist' && styles.activeTabText]}>Playlist</Text>
-        </TouchableOpacity>
+        {isCurrentUser && (
+          <TouchableOpacity
+            style={[styles.tabButton, selectedTab === 'Playlist' && styles.activeTabButton]}
+            onPress={() => setSelectedTab('Playlist')}
+          >
+            <Text style={[styles.tabText, selectedTab === 'Playlist' && styles.activeTabText]}>Playlist</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {renderTabContent()}
@@ -220,6 +282,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#d4d4d4',
     borderRadius: 15,
     marginTop: 20,
+  },
+  followButton: {
+    width: '90%',
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#007BFF',
+    borderRadius: 15,
+    marginTop: 20,
+  },
+  unfollowButton: {
+    backgroundColor: '#a09bbf',
+  },
+  followButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
   tabContainer: {
     flexDirection: 'row',

@@ -46,6 +46,16 @@ class UserService {
       throw error;
     }
   }
+
+  static async getUserByUsername(username: string) {
+    try {
+      const response = await axiosInstance.get(`/api/v1/user?username=${username}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      throw error;
+    }
+  }
 }
 
 export default UserService;

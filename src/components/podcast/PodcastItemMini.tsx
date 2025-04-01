@@ -17,11 +17,15 @@ const PodcastItemMini: React.FC<PodcastItemMiniProps> = ({ podcast }) => {
   const navigation = useNavigation<StackNavigationProp<RootParamList>>();
   const { showBottomSheet } = useBottomSheet();
 
-  const bottomSheetOptions = [
-    { label: 'Add to playlist', onPress: () => Toast.show({ type: 'info', text1: "Coming soon!"}) },
-    { label: 'Share', onPress: () => Toast.show({ type: 'info', text1: "Coming soon!"}) },
-    { label: 'Report', onPress: () => Toast.show({ type: 'info', text1: "Coming soon!"}) },
-  ];
+  const handleMenuPress = () => {
+    console.log('Opening BottomSheet for podcast ID:', podcast.id);
+    const bottomSheetOptions = [
+      { label: 'Add to playlist', onPress: () => Toast.show({ type: 'info', text1: `Add ${podcast.title} to playlist!` }) },
+      { label: 'Share', onPress: () => Toast.show({ type: 'info', text1: `Share ${podcast.title}!` }) },
+      { label: 'Report', onPress: () => Toast.show({ type: 'info', text1: `Report ${podcast.title}!` }) },
+    ];
+    showBottomSheet(bottomSheetOptions);
+  };
 
   return (
     <TouchableOpacity onPress={() => navigation.navigate('Podcast', { podcast })}>
@@ -40,7 +44,7 @@ const PodcastItemMini: React.FC<PodcastItemMiniProps> = ({ podcast }) => {
             </Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.menuBtn} onPress={() => showBottomSheet(bottomSheetOptions)}>
+        <TouchableOpacity style={styles.menuBtn} onPress={handleMenuPress}>
           <Icon name="ellipsis-vertical" size={20} color="#000" />
         </TouchableOpacity>
       </View>
@@ -93,6 +97,7 @@ const styles = StyleSheet.create({
   menuBtn: {
     padding: 5,
     alignSelf: 'flex-start',
+    zIndex: 10,
   },
 });
 

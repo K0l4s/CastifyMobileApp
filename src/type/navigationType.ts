@@ -3,7 +3,7 @@ import { Podcast } from "../models/PodcastModel";
 export type RootParamList = {
   Splash: undefined,
   Main: undefined,
-  Profile: undefined,
+  Profile: { username: string},
   Podcast: { podcast: Podcast },
   Verify: { token: string },
   RegisterFinal: undefined,

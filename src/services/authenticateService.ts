@@ -162,7 +162,7 @@ class AuthenticateService {
       if (credentials) {
         const tokenData = JSON.parse(credentials.password);
         const access_token = tokenData.access_token;
-
+        console.log(access_token);
         const response = await axiosInstance.post(`/api/v1/auth/check-token?token=${access_token}`);
         return response.data.valid;
       }
