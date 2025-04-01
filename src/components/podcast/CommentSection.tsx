@@ -305,7 +305,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({ sheetRef, podcastId, to
                     {/* Show replies button */}
                     {item.totalReplies > 0 && (
                       <TouchableOpacity style={styles.showRepliesBtn} onPress={() => handleShowReplies(item.id)}>
-                          <Text>Show {item.totalReplies} replies</Text>
+                        <Icon name="chevron-forward-outline" size={18} color="#666" />
+                        <Text style={styles.showRepliesText}>Show {item.totalReplies} replies</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -462,10 +463,15 @@ const styles = StyleSheet.create({
   },
   showRepliesBtn: {
     flexDirection: 'row',
-    paddingVertical: 10,
+    paddingVertical: 5,
     paddingHorizontal: 5,
     backgroundColor: "#e0dfe6",
     borderRadius: 10,
+    marginTop: 5,
+    alignSelf: 'flex-start',
+  },
+  showRepliesText: {
+    fontSize: 12,
   },
   inputContainer: {
     position: 'absolute',
