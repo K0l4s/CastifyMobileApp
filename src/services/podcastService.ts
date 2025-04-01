@@ -76,6 +76,32 @@ class PodcastService {
       throw error;
     }
   }
+
+  static async getUserPodcasts(
+    username: string,
+    page = 0,
+    size = 10,
+    sortBy: 'newest' | 'oldest' | 'views' = 'newest'
+  ) {
+    try {
+      const response = await axiosInstance.get<PodcastResponse>(
+        `/api/v1/podcast/user/${username}`, {
+        params: {
+          page,
+          size,
+          sortBy
+        }
+      });
+  
+      response.data.content.forEach(podcast => {
+        podcast.videoUrl = `${BaseApi}/api/v1/podcast/video?path=${encodeURIComponent(podcast.videoUrl)}`;
+      });
+  
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
 }
   
 export default PodcastService;

@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { 
   View, Text, StyleSheet, TouchableOpacity, ScrollView, 
-  SafeAreaView, Share, ActivityIndicator 
+  SafeAreaView, Share, ActivityIndicator, 
+  Image
 } from 'react-native';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -9,27 +10,27 @@ import Orientation from 'react-native-orientation-locker';
 import { RootParamList } from '../type/navigationType';
 import Icon from 'react-native-vector-icons/Ionicons';
 import Video, { VideoRef } from 'react-native-video';
-import CommentSection from '../components/podcast/CommentSection';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { useBottomSheet } from '../context/BottomSheetContext';
 import ContentBottomSheet from '../components/podcast/ContentBottomSheet';
 import DateUtil from '../utils/dateUtil';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
+import CommonUtil from '../utils/commonUtil';
 
-type PodcastScreenRouteProp = RouteProp<RootParamList, 'Podcast'>;
-type PodcastScreenNavigationProp = StackNavigationProp<RootParamList, 'Podcast'>;
+// type PodcastScreenRouteProp = RouteProp<RootParamList, 'Podcast'>;
+// type PodcastScreenNavigationProp = StackNavigationProp<RootParamList, 'Podcast'>;
 
-interface Podcast {
-  id: string;
-  title: string;
-  videoUrl: string;
-  thumbnailUrl?: string;
-  views?: number;
-  duration?: string;
-  content?: string;
-  createdDay: Date;
-}
+// interface Podcast {
+//   id: string;
+//   title: string;
+//   videoUrl: string;
+//   thumbnailUrl?: string;
+//   views?: number;
+//   duration?: string;
+//   content?: string;
+//   createdDay: Date;
+// }
 
 interface PodcastScreenProps {
   route: RouteProp<RootParamList, 'Podcast'>;
@@ -37,19 +38,20 @@ interface PodcastScreenProps {
 }
 
 const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
-  //const route = useRoute<PodcastScreenRouteProp>();
-  //const navigation = useNavigation<PodcastScreenNavigationProp>();
   const { podcast } = route.params;
   const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(true);
   const [isFullScreen, setIsFullScreen] = useState(false);
-  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false); // Trạng thái để quản lý overlay
+  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
   const videoRef = useRef<VideoRef>(null);
   const contentRef = useRef<BottomSheet>(null);
 
   const snapPoints = ['50%', '90%'];
 
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  const user = useSelector((state: RootState) => state.auth.user);
 
   const { showCommentSection, hideBottomSheet } = useBottomSheet();
 
@@ -84,6 +86,30 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
 
   const handleCloseContent = () => {
     contentRef.current?.close();
+  };
+
+  const handleToggleLike = () => {
+    setIsLiked(!isLiked);
+  };
+
+  const handleToggleSave = () => {
+    setIsSaved(!isSaved);
+  };
+
+  const handleReport = () => {
+    console.log('Report video');
+  };
+
+  const handleFollow = () => {
+    console.log('Follow user');
+  };
+
+  const handleEditVideo = () => {
+    console.log('Edit video');
+  };
+
+  const handleOpenProfile = () => {
+    navigation.navigate('Profile', { username: podcast.user.username });
   };
 
   return (
@@ -135,11 +161,8 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
           <Text style={styles.title}>{podcast.title}</Text>
           <View style={styles.statsContainer}>
             <Icon name="eye-outline" size={16} color="#666" />
-            <Text style={styles.statsText}>{podcast.views || 0} views</Text>
+            <Text style={styles.statsText}>{CommonUtil.formatNumber(podcast.views) || 0} views</Text>
             <Icon name="time-outline" size={16} color="#666" style={styles.statsIcon} />
-            {/* <Text style={styles.statsText}>{DateUtil.formatTimeDuration(podcast.duration) || '0:00'}</Text> */}
-            {/* <Icon name={isPlaying ? "pause-circle" : "play-circle"} size={16} color="#666" style={styles.statsIcon} />
-            <Text style={styles.statsText}>{isPlaying ? 'Playing' : 'Paused'}</Text> */}
             <Text style={styles.statsText}>{DateUtil.formatDateToTimeAgo(new Date(podcast.createdDay))} ago</Text>
           </View>
           
@@ -149,6 +172,43 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* User Info Container */}
+        <View style={styles.userInfoContainer}>
+          <TouchableOpacity onPress={handleOpenProfile} style={styles.userInfo}>
+            <Image source={{ uri: podcast.user.avatarUrl }} style={styles.avatar} />
+            <View>
+              <Text style={styles.username} numberOfLines={2}>{podcast.user.fullname}</Text>
+              <Text style={styles.followers}>{CommonUtil.formatNumber(podcast.user.totalFollower)} followers</Text>
+            </View>
+          </TouchableOpacity>
+          {user?.id === podcast.user.id ? (
+            <TouchableOpacity style={styles.editButton} onPress={handleEditVideo}>
+              <Text style={styles.editButtonText}>Edit Video</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.followButton} onPress={handleFollow}>
+              <Text style={styles.followButtonText}>Follow</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+          
+          {/* Video Actions */}
+        <View style={styles.videoActions}>
+          <TouchableOpacity onPress={handleToggleLike} style={styles.actionButton}>
+            <Icon name={isLiked ? "heart" : "heart-outline"} size={24} color={isLiked ? "red" : "#666"} />
+            <Text style={styles.actionText}>{CommonUtil.formatNumber(podcast.totalLikes)}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleToggleSave} style={styles.actionButton}>
+            <Icon name={isSaved ? "bookmark" : "bookmark-outline"} size={24} color={isSaved ? "#270ad1" : "#666"} />
+            <Text style={styles.actionText}>Save</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleReport} style={styles.actionButton}>
+            <Icon name="flag-outline" size={24} color="#666" />
+            <Text style={styles.actionText}>Report</Text>
+          </TouchableOpacity>
+        </View>
+        
       </ScrollView>
         
       {/* Sử dụng ContentBottomSheet */}
@@ -161,7 +221,7 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
       {/* Comment section */}
       {isAuthenticated ? (
         <TouchableOpacity style={styles.commentPreview} onPress={handleOpenComments}>
-          <Text style={styles.commentPreviewText}>View Comments</Text>
+          <Text style={styles.commentPreviewText}>View Comments ({CommonUtil.formatNumber(podcast.totalComments)})</Text>
         </TouchableOpacity>
       ) : (
         <View style={styles.commentPreview}>
@@ -236,15 +296,15 @@ const styles = StyleSheet.create({
     padding: 15,
   },
   title: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 5,
     color: '#1a1a1a',
   },
   statsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 10,
     flexWrap: 'wrap',
   },
   statsText: {
@@ -276,6 +336,68 @@ const styles = StyleSheet.create({
   commentPreviewText: {
     color: '#007BFF',
     fontWeight: 'bold',
+  },
+  userInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
+    marginVertical: 0,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 25,
+    marginRight: 10,
+  },
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  username: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  followers: {
+    fontSize: 14,
+    color: '#666',
+  },
+  editButton: {
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    backgroundColor: '#007BFF',
+    borderRadius: 5,
+  },
+  editButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  followButton: {
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 5,
+  },
+  followButtonText: {
+    color: '#007BFF',
+    fontWeight: 'bold',
+  },
+  videoActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  actionButton: {
+    alignItems: 'center',
+  },
+  actionText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 5,
   },
 });
 
