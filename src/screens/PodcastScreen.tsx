@@ -13,6 +13,7 @@ import CommentSection from '../components/podcast/CommentSection';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { useBottomSheet } from '../context/BottomSheetContext';
 import ContentBottomSheet from '../components/podcast/ContentBottomSheet';
+import DateUtil from '../utils/dateUtil';
 
 type PodcastScreenRouteProp = RouteProp<RootParamList, 'Podcast'>;
 type PodcastScreenNavigationProp = StackNavigationProp<RootParamList, 'Podcast'>;
@@ -25,6 +26,7 @@ interface Podcast {
   views?: number;
   duration?: string;
   content?: string;
+  createdDay: Date;
 }
 
 interface PodcastScreenProps {
@@ -69,12 +71,7 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
 
   const handleOpenComments = () => {
     setIsBottomSheetOpen(true);
-    showCommentSection(podcast.id);
-  };
-
-  const handleCloseComments = () => {
-    setIsBottomSheetOpen(false); // Ẩn overlay khi đóng BottomSheet
-    hideBottomSheet();
+    showCommentSection(podcast.id, podcast.totalComments);
   };
 
   const handleOpenContent = () => {
@@ -87,14 +84,6 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* {isBottomSheetOpen && (
-        <TouchableOpacity
-          style={styles.overlay}
-          activeOpacity={1}
-          
-          onPress={handleCloseComments} // Đóng BottomSheet khi nhấn vào overlay
-        />
-      )} */}
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.headerButton} 
@@ -144,9 +133,10 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
             <Icon name="eye-outline" size={16} color="#666" />
             <Text style={styles.statsText}>{podcast.views || 0} views</Text>
             <Icon name="time-outline" size={16} color="#666" style={styles.statsIcon} />
-            <Text style={styles.statsText}>{podcast.duration || '0:00'}</Text>
-            <Icon name={isPlaying ? "pause-circle" : "play-circle"} size={16} color="#666" style={styles.statsIcon} />
-            <Text style={styles.statsText}>{isPlaying ? 'Playing' : 'Paused'}</Text>
+            {/* <Text style={styles.statsText}>{DateUtil.formatTimeDuration(podcast.duration) || '0:00'}</Text> */}
+            {/* <Icon name={isPlaying ? "pause-circle" : "play-circle"} size={16} color="#666" style={styles.statsIcon} />
+            <Text style={styles.statsText}>{isPlaying ? 'Playing' : 'Paused'}</Text> */}
+            <Text style={styles.statsText}>{DateUtil.formatDateToTimeAgo(new Date(podcast.createdDay))} ago</Text>
           </View>
           
           <TouchableOpacity onPress={handleOpenContent} style={styles.descriptionContainer}>
@@ -232,10 +222,10 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   infoContainer: {
-    padding: 20,
+    padding: 15,
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 10,
     color: '#1a1a1a',

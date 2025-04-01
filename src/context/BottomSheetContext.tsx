@@ -9,7 +9,7 @@ import { BackHandler, StyleSheet, TouchableOpacity, View } from 'react-native';
 interface BottomSheetContextProps {
   showBottomSheet: (options: BottomSheetOption[]) => void;
   showGenrePicker: (genres: Genre[], selectedGenres: Genre[], toggleGenre: (genre: Genre) => void) => void;
-  showCommentSection: (podcastId: string) => void;
+  showCommentSection: (podcastId: string, totalComments: number) => void;
   hideBottomSheet: () => void;
 }
 
@@ -28,6 +28,7 @@ export const BottomSheetProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [toggleGenre, setToggleGenre] = useState<(genre: Genre) => void>(() => {});
   const [currentSheet, setCurrentSheet] = useState<'options' | 'genres' | 'comments'>('options');
   const [podcastId, setPodcastId] = useState<string | null>(null);
+  const [totalComments, SetTotalComments] = useState<number>();
   const sheetRef = useRef<BottomSheet>(null);
 
   const showBottomSheet = (options: BottomSheetOption[]) => {
@@ -44,9 +45,10 @@ export const BottomSheetProvider: React.FC<{ children: ReactNode }> = ({ childre
     setIsVisible(true);
   };
 
-  const showCommentSection = (podcastId: string) => {
+  const showCommentSection = (podcastId: string, totalComments: number) => {
     setPodcastId(podcastId);
     setCurrentSheet('comments');
+    SetTotalComments(totalComments);
     setIsVisible(true);
   };
 
@@ -102,6 +104,7 @@ export const BottomSheetProvider: React.FC<{ children: ReactNode }> = ({ childre
         <CommentSection 
           sheetRef={sheetRef}
           podcastId={podcastId}
+          totalComments={totalComments ?? 0}
           isVisible={isVisible}
           onClose={hideBottomSheet} />
       )}

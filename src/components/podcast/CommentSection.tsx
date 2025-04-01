@@ -4,15 +4,17 @@ import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import CommentService from '../../services/commentService';
 import { Comment } from '../../models/CommentModel';
 import { FlatList } from 'react-native-gesture-handler';
+import { noCommentImg } from '../../utils/fileUtil';
 
 interface CommentSectionProps {
   sheetRef: React.RefObject<BottomSheet>;
   podcastId: string;
+  totalComments: number;
   isVisible: boolean;
   onClose: () => void;
 }
 
-const CommentSection: React.FC<CommentSectionProps> = ({ sheetRef, podcastId, isVisible, onClose }) => {
+const CommentSection: React.FC<CommentSectionProps> = ({ sheetRef, podcastId, totalComments, isVisible, onClose }) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -86,36 +88,40 @@ const CommentSection: React.FC<CommentSectionProps> = ({ sheetRef, podcastId, is
       onClose={onClose}
     >
       <BottomSheetView style={styles.container}>
-        <Text style={styles.header}>Comments</Text>
-        {isLoading && page === 0 ? (
-          <ActivityIndicator size="large" color="#000" />
-        ) : (
-          <FlatList
-            data={comments}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.commentContainer}>
-                <Image source={{ uri: item.user.avatarUrl }} style={styles.avatar} />
-                <View style={styles.commentContent}>
-                  <Text style={styles.username}>{item.user.fullname}</Text>
-                  <Text style={styles.commentText}>{item.content}</Text>
+          <Text style={styles.header}>Comments ({totalComments})</Text>
+          {isLoading && page === 0 ? (
+            <ActivityIndicator size="large" color="#000" />
+          ) : comments.length === 0 ? ( // Hiển thị thông báo nếu không có bình luận
+            <View style={styles.noCommentsContainer}>
+            <Image source={noCommentImg} style={styles.noCommentsImage}></Image>
+            <Text style={styles.noCommentsText}>Be the first one to comment !</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={comments}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <View style={styles.commentContainer}>
+                  <Image source={{ uri: item.user.avatarUrl }} style={styles.avatar} />
+                  <View style={styles.commentContent}>
+                    <Text style={styles.username}>{item.user.fullname}</Text>
+                    <Text style={styles.commentText}>{item.content}</Text>
+                  </View>
                 </View>
-              </View>
-            )}
-            onEndReached={() => {
-              if (hasMore && !isLoadingMore) {
-                fetchComments(page);
+              )}
+              onEndReached={() => {
+                if (hasMore && !isLoadingMore) {
+                  fetchComments(page);
+                }
+              }}
+              onEndReachedThreshold={0.5}
+              ListFooterComponent={
+                isLoadingMore ? <ActivityIndicator size="small" color="#000" /> : null
               }
-            }}
-            onEndReachedThreshold={0.5}
-            ListFooterComponent={
-              isLoadingMore ? <ActivityIndicator size="small" color="#000" /> : null
-            }
-            contentContainerStyle={{ paddingBottom: 80 }}
-          />
-        )}
-        
-      </BottomSheetView>
+              contentContainerStyle={{ paddingBottom: 80 }}
+            />
+          )}
+        </BottomSheetView>
       
       
     </BottomSheet>
@@ -153,6 +159,21 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
   },
+  noCommentsContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  noCommentsText: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#999',
+    marginTop: 20,
+  },
+  noCommentsImage: {
+    width: 100,
+    height: 100,
+    resizeMode: 'contain',
+  },
   commentContainer: {
     flexDirection: 'row',
     marginBottom: 16,
@@ -172,6 +193,7 @@ const styles = StyleSheet.create({
   },
   commentText: {
     color: '#333',
+    fontSize: 14,
   },
   inputContainer: {
     position: 'absolute',
