@@ -9,6 +9,7 @@ import { RootState } from '../redux/store';
 import { conversationService } from '../services/conversationService';
 import DateUtil from '../utils/dateUtil';
 import useStomp from '../hooks/useStomp';
+import { FullMemberInfor } from '../models/Conversation';
 
 interface Message {
   id: string;
@@ -108,7 +109,20 @@ const ChatDetailScreen = () => {
       setMessages((prev) => [newMsg, ...prev]);
     }
   }, [object]);
-
+  const [members, setMembers] = useState<FullMemberInfor[]>([]);
+  useEffect(() => {
+    const fetchMembers = async () => {
+      if (!conversationId) return;
+      try {
+        const response = await conversationService.getMembers(conversationId);
+        setMembers(response.data);
+      } catch (error) {
+        console.error("❌ Failed to fetch members:", error);
+      }
+    };
+    fetchMembers();
+  }
+    , [conversationId]);
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
       <FlatList
@@ -118,28 +132,107 @@ const ChatDetailScreen = () => {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => {
           const isMyMessage = item.sender.id === userId;
+          // Tìm những members có members.id === item.sender.id
+          const readers = members.filter(member =>
+            member.lastReadMessage?.lastMessageId === item.id
+            && member.members.id !== userId
+          );
           return (
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 5, paddingHorizontal: 10 }}>
-              {!isMyMessage && (
-                <Image
-                  source={{ uri: item.sender.avatarUrl || 'https://i.imgur.com/2vP3hDA.png' }}
-                  style={{ width: 40, height: 40, borderRadius: 20, marginRight: 10 }}
-                />
-              )}
-              <View style={{
-                maxWidth: '75%',
-                backgroundColor: isMyMessage ? '#4D90FE' : '#E5E5E5',
-                padding: 10,
-                borderRadius: 15,
-                alignSelf: isMyMessage ? 'flex-end' : 'flex-start',
-                marginLeft: isMyMessage ? 'auto' : 0
-              }}>
-                {!isMyMessage && <Text style={{ fontWeight: 'bold', marginBottom: 3 }}>{item.sender.fullname}</Text>}
-                <Text style={{ color: isMyMessage ? 'white' : 'black' }}>{item.content}</Text>
-                <Text style={{ fontSize: 10, color: 'gray', marginTop: 5 }}>
-                  {DateUtil.formatDateToTimeAgo(new Date(item.timestamp))}
-                </Text>
+            <View
+              key={item.id}
+              style={{
+                flexDirection: 'column',
+                alignItems: isMyMessage ? 'flex-end' : 'flex-start',
+                marginVertical: 5,
+                paddingHorizontal: 10,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'flex-start',
+                  justifyContent: isMyMessage ? 'flex-end' : 'flex-start',
+                  gap: 8,
+                }}
+              >
+                {!isMyMessage && (
+                  <Image
+                    source={{
+                      uri:
+                        item.sender.avatarUrl ||
+                        'https://i.imgur.com/2vP3hDA.png',
+                    }}
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      marginRight: 8,
+                    }}
+                  />
+                )}
+                <View
+                  style={{
+                    maxWidth: '75%',
+                    flexDirection: 'column',
+                    alignItems: isMyMessage ? 'flex-end' : 'flex-start',
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontWeight: 'bold',
+                      color: isMyMessage ? 'white' : 'black',
+                    }}
+                  >
+                    {item.sender.fullname}
+                  </Text>
+                  <View
+                    style={{
+                      backgroundColor: isMyMessage ? '#4D90FE' : '#E5E5E5',
+                      padding: 10,
+                      borderRadius: 15,
+                    }}
+                  >
+                    <Text style={{ color: isMyMessage ? 'white' : 'black' }}>
+                      {item.content}
+                    </Text>
+                  </View>
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      color: 'gray',
+                      marginTop: 5,
+                    }}
+                  >
+                    {DateUtil.formatDateToTimeAgo(new Date(item.timestamp))}
+                  </Text>
+                </View>
               </View>
+
+              {/* Avatars của những người đã đọc */}
+              {readers.length > 0 && (
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    marginTop: 4,
+                    paddingHorizontal: 40,
+                    gap: 4,
+                  }}
+                >
+                  {readers.map((reader) => (
+                    <Image
+                      key={reader.members.id}
+                      source={{ uri: reader.members.avatarUrl }}
+                      style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: 10,
+                        borderWidth: 2,
+                        borderColor: 'white',
+                      }}
+                    />
+                  ))}
+                </View>
+              )}
             </View>
           );
         }}
