@@ -1,4 +1,4 @@
-import { PodcastResponse } from "../models/PodcastModel";
+import { Podcast, PodcastResponse } from "../models/PodcastModel";
 import { axiosInstance, axiosInstanceAuth, axiosInstanceFile, BaseApi } from "../utils/axiosInstance";
 
 class PodcastService {
@@ -97,6 +97,54 @@ class PodcastService {
         podcast.videoUrl = `${BaseApi}/api/v1/podcast/video?path=${encodeURIComponent(podcast.videoUrl)}`;
       });
   
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  static async likePodcast(podcastId: string) {
+    try {
+      const response = await axiosInstanceAuth.post(`/api/v1/podcast/reaction`, { podcastId });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+  
+  static async getPodcastByAuth(id: string) {
+    try {
+      const response = await axiosInstanceAuth.get<Podcast>(`/api/v1/podcast/detail/${id}`);
+      response.data.videoUrl = `${BaseApi}/api/v1/podcast/video?path=${encodeURIComponent(response.data.videoUrl)}`;
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+  
+  static async getPodcastByAnonymous(id: string) {
+    try {
+      const response = await axiosInstance.get<Podcast>(`/api/v1/podcast/anonymous/${id}`);
+      response.data.videoUrl = `${BaseApi}/api/v1/podcast/video?path=${encodeURIComponent(response.data.videoUrl)}`;
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  static async getPodcastById(id: string) {
+    try {
+      const response = await axiosInstanceAuth.get<Podcast>(`/api/v1/podcast/${id}`);
+      response.data.videoUrl = `${BaseApi}/api/v1/podcast/video?path=${encodeURIComponent(response.data.videoUrl)}`;
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  static async incrementPodcastViews(podcastId: string) {
+    try {
+      const response = await axiosInstance.post(`/api/v1/podcast/${podcastId}/inc-views`);
       return response.data;
     } catch (error) {
       throw error;
