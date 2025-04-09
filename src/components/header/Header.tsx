@@ -33,6 +33,10 @@ const Header: React.FC<HeaderProps> = ({ selectedTab, onSelectTab, genres, anima
     navigation.navigate('Profile');
   }
 
+  const handleSearchPress = () => {
+    navigation.navigate('Search');
+  };
+
   const avatarSource = user?.avatarUrl && user.avatarUrl !== '' ? { uri: user.avatarUrl } : defaultAvatar;
 
   return (
@@ -49,7 +53,7 @@ const Header: React.FC<HeaderProps> = ({ selectedTab, onSelectTab, genres, anima
           {/* Nút tìm kiếm */}
           <TouchableOpacity
             style={styles.iconButton}
-            onPress={() => setIsSearchVisible(true)}>
+            onPress={handleSearchPress}>
             <Icon name="search" size={22} color="#0c0461" />
           </TouchableOpacity>
 
@@ -85,10 +89,10 @@ const Header: React.FC<HeaderProps> = ({ selectedTab, onSelectTab, genres, anima
         trigger={toggleModal} 
       />
     {/* Modal tìm kiếm */}
-    <SearchModal
-        visible={isSearchVisible}
-        onClose={() => setIsSearchVisible(false)}
-      />
+    {/* <SearchModal
+      visible={isSearchVisible}
+      onClose={() => setIsSearchVisible(false)}
+    /> */}
     </>
   );
 };

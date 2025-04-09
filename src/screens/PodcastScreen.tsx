@@ -1,15 +1,15 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { 
   View, Text, StyleSheet, TouchableOpacity, ScrollView, 
   SafeAreaView, Share, ActivityIndicator, 
   Image
 } from 'react-native';
-import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
+import { RouteProp, useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import Orientation from 'react-native-orientation-locker';
 import { RootParamList } from '../type/navigationType';
 import Icon from 'react-native-vector-icons/Ionicons';
-import Video, { VideoRef } from 'react-native-video';
+import Video, { OnProgressData, VideoRef } from 'react-native-video';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { useBottomSheet } from '../context/BottomSheetContext';
 import ContentBottomSheet from '../components/podcast/ContentBottomSheet';
@@ -17,6 +17,10 @@ import DateUtil from '../utils/dateUtil';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import CommonUtil from '../utils/commonUtil';
+import PodcastService from '../services/podcastService';
+import Toast from 'react-native-toast-message';
+import { setupVideoViewTracking } from '../utils/video';
+import Animated, { runOnUI, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 
 // type PodcastScreenRouteProp = RouteProp<RootParamList, 'Podcast'>;
 // type PodcastScreenNavigationProp = StackNavigationProp<RootParamList, 'Podcast'>;
@@ -39,7 +43,7 @@ interface PodcastScreenProps {
 
 const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
   const { podcast } = route.params;
-  const [isPlaying, setIsPlaying] = useState(false);
+  // const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(true);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
@@ -47,13 +51,72 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
   const [isSaved, setIsSaved] = useState(false);
   const videoRef = useRef<VideoRef>(null);
   const contentRef = useRef<BottomSheet>(null);
+  const [updatedPodcast, setUpdatedPodcast] = useState(podcast);
 
-  const snapPoints = ['50%', '90%'];
+  // Shared value cho animation
+  const animatedViews = useSharedValue(podcast.views || 0);
 
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
   const user = useSelector((state: RootState) => state.auth.user);
 
   const { showCommentSection, hideBottomSheet } = useBottomSheet();
+  
+  const fetchPodcastDetails = async () => {
+    try {
+      console.log("Fetching podcast details...");
+      const response = await PodcastService.getPodcastById(podcast.id);
+      setUpdatedPodcast(response);
+      setIsLiked(response.liked);
+    } catch (error) {
+      console.error('Error fetching podcast details:', error);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isAuthenticated) {
+        fetchPodcastDetails(); // Tải lại dữ liệu khi màn hình được focus
+      }
+    }, [isAuthenticated, podcast.id])
+  );
+
+  const handleViewIncremented = () => {
+    setUpdatedPodcast((prev) => {
+      const newViews = (prev.views || 0) + 1;
+
+      runOnUI(() => {
+        animatedViews.value = withTiming(newViews, { duration: 500 }); // Animation trong 500ms
+      })();
+
+      return {
+        ...prev,
+        views: newViews,
+      };
+    });
+  };
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          scale: withSequence(
+            withTiming(animatedViews.value > podcast.views ? 1.2 : 1, { duration: 200 }), // Phóng to 200ms
+            withTiming(1, { duration: 200 }) // Trở lại kích thước ban đầu
+          ),
+        },
+      ],
+    };
+  });
+
+  const videoTrackingRef = useRef(
+    setupVideoViewTracking(
+      videoRef, 
+      PodcastService.incrementPodcastViews, 
+      podcast.id,
+      handleViewIncremented,
+      podcast.duration || 0
+    )
+  );
 
   const handleShare = async () => {
     try {
@@ -88,19 +151,69 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
     contentRef.current?.close();
   };
 
-  const handleToggleLike = () => {
-    setIsLiked(!isLiked);
+  const handleToggleLike = async () => {
+    if (!isAuthenticated) {
+      Toast.show({
+        type: 'info',
+        text1: 'Please login to do this action!',
+        position: 'bottom',
+        visibilityTime: 2000,
+      });
+      return;
+    }
+
+    try {
+      await PodcastService.likePodcast(podcast.id);
+
+      // Cập nhật trạng thái isLiked và totalLikes
+      setIsLiked(!isLiked);
+      setUpdatedPodcast((prev) => ({
+        ...prev,
+        totalLikes: prev.totalLikes + (isLiked ? -1 : 1),
+      }));
+    } catch (error) {
+      console.error('Error liking podcast:', error);
+    }
   };
 
   const handleToggleSave = () => {
+    if (!isAuthenticated) {
+      Toast.show({
+        type: 'info',
+        text1: 'Please login to do this action!',
+        position: 'bottom',
+        visibilityTime: 2000,
+      });
+      return;
+    }
     setIsSaved(!isSaved);
   };
 
   const handleReport = () => {
+    if (!isAuthenticated) {
+      Toast.show({
+        type: 'info',
+        text1: 'Please login to do this action!',
+        position: 'bottom',
+        visibilityTime: 2000,
+      });
+      return;
+    }
+
     console.log('Report video');
   };
 
   const handleFollow = () => {
+    if (!isAuthenticated) {
+      Toast.show({
+        type: 'info',
+        text1: 'Please login to do this action!',
+        position: 'bottom',
+        visibilityTime: 2000,
+      });
+      return;
+    }
+
     console.log('Follow user');
   };
 
@@ -111,6 +224,14 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
   const handleOpenProfile = () => {
     navigation.navigate('Profile', { username: podcast.user.username });
   };
+
+  if (!updatedPodcast) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#000" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -140,8 +261,8 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
             controls
             resizeMode="contain"
             onBuffer={({ isBuffering }) => setIsBuffering(isBuffering)}
-            onProgress={() => setIsPlaying(true)}
-            onEnd={() => setIsPlaying(false)}
+            onProgress={videoTrackingRef.current.handleProgress}
+            onEnd={videoTrackingRef.current.handleEnd}
             poster={podcast.thumbnailUrl || ""}
           />
           {isBuffering && (
@@ -161,7 +282,9 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
           <Text style={styles.title}>{podcast.title}</Text>
           <View style={styles.statsContainer}>
             <Icon name="eye-outline" size={16} color="#666" />
-            <Text style={styles.statsText}>{CommonUtil.formatNumber(podcast.views) || 0} views</Text>
+            <Animated.Text style={[styles.statsText, animatedStyle]}>
+              {CommonUtil.formatNumber(updatedPodcast.views || 0)} views
+            </Animated.Text>
             <Icon name="time-outline" size={16} color="#666" style={styles.statsIcon} />
             <Text style={styles.statsText}>{DateUtil.formatDateToTimeAgo(new Date(podcast.createdDay))} ago</Text>
           </View>
@@ -197,7 +320,7 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
         <View style={styles.videoActions}>
           <TouchableOpacity onPress={handleToggleLike} style={styles.actionButton}>
             <Icon name={isLiked ? "heart" : "heart-outline"} size={24} color={isLiked ? "red" : "#666"} />
-            <Text style={styles.actionText}>{CommonUtil.formatNumber(podcast.totalLikes)}</Text>
+            <Text style={styles.actionText}>{CommonUtil.formatNumber(updatedPodcast.totalLikes)}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={handleToggleSave} style={styles.actionButton}>
             <Icon name={isSaved ? "bookmark" : "bookmark-outline"} size={24} color={isSaved ? "#270ad1" : "#666"} />
@@ -234,6 +357,11 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   container: {
     flex: 1,
     backgroundColor: 'white',
