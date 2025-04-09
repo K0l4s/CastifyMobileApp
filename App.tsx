@@ -21,6 +21,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetProvider } from './src/context/BottomSheetContext';
 import NotificationScreen from './src/screens/NotificationScreen';
 import CreateScreen from './src/screens/CreateScreen';
+import ChatSettingScreen from './src/screens/ChatSettingScreen';
 const Stack = createStackNavigator<RootParamList>();
 import useStomp from './src/hooks/useStomp';
 // Cấu hình Deep Link
@@ -74,6 +75,7 @@ const App = () => {
               <Stack.Screen name="VerifySuccess" component={VerifySuccessScreen} />
               <Stack.Screen name="Notification" component={NotificationScreen} />
               <Stack.Screen name="ChatDetailScreen" component={ChatDetailScreen} options={{ headerShown: true }} />
+              <Stack.Screen name="ChatSettingScreen" component={ChatSettingScreen} options={{ headerShown: true }} />
               <Stack.Screen name="Create" component={CreateScreen} />
             </Stack.Navigator>
             <Toast />

@@ -9,7 +9,7 @@ import { RootState } from '../redux/store';
 import { conversationService } from '../services/conversationService';
 import DateUtil from '../utils/dateUtil';
 import useStomp from '../hooks/useStomp';
-import { FullMemberInfor } from '../models/Conversation';
+import { ConversationDetail, FullMemberInfor } from '../models/Conversation';
 
 interface Message {
   id: string;
@@ -85,17 +85,63 @@ const ChatDetailScreen = () => {
   useEffect(() => {
     fetchMessages(0);
   }, []);
+  const [chatDetail, setChatDetail] = useState<ConversationDetail>(
+    {
+      id: "",
+      title: "",
+      imageUrl: "",
+      memberSize: 0,
+      memberList: [],
+      createdAt: "",
+      active: false,
+    }
+  );
 
   useEffect(() => {
+    // dispatch(setClick(!click))
+
+    const fetchChatDetail = async () => {
+      if (!conversationId) return;
+      try {
+        const response = await conversationService.getDetailChat(conversationId);
+        setChatDetail(response.data);
+        console.log("🚀 ~ file: ChatDetailScreen.tsx:88 ~ fetchChatDetail ~ response.data:", response.data)
+      } catch (error) {
+        console.error("❌ Failed to fetch chat detail:", error);
+      }
+      {
+        conversationService.readMsg(conversationId);
+      }
+    };
+    fetchChatDetail();
+  }
+    , [conversationId]);
+  useEffect(() => {
     navigation.setOptions({
-      title: "Hội thoại",
+      title: chatDetail.title,
+      headerTitleStyle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+      },
       headerLeft: () => (
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 16 }}>
           <Text style={{ fontSize: 20 }}>←</Text>
         </TouchableOpacity>
       ),
+      headerRight: () => (
+        <TouchableOpacity
+          //onPress={() => 
+          // navigation.navigate('GroupInfo', { conversationId })
+          //} 
+          style={{ marginRight: 16 }}>
+          <Text style={{ fontSize: 20 }}>
+            {/* setting icon */}
+            ⚙️
+          </Text>
+        </TouchableOpacity>
+      ),
     });
-  }, [navigation]);
+  }, [navigation,chatDetail]);
 
   const object = useStomp({
     subscribeUrl: `/topic/group/${conversationId}`,

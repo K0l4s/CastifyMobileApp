@@ -49,9 +49,11 @@ const useStomp = ({
           token = tokenData.access_token;
         } else {
           console.warn('⚠️ Không tìm thấy token trong Keychain');
+          return;
         }
       } catch (error) {
         console.error('❌ Lỗi khi lấy token từ Keychain:', error);
+        return;
       }
 
       const socket = new SockJS(BaseApi + '/ws');

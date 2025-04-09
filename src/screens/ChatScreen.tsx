@@ -101,39 +101,62 @@ const ChatScreen = () => {
         refreshing={refreshing}
         onRefresh={handleRefresh}
         ListFooterComponent={renderFooter}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.chatItem}
-            onPress={() =>
-              navigation.navigate('ChatDetailScreen', {
-                conversationId: item.id,
-              })
-            }
-          >
-            <Image
-              source={{
-                uri:
-                  item.imageUrl ||
-                  'https://png.pngtree.com/element_our/png_detail/20180904/group-avatar-icon-design-vector-png_75950.jpg',
-              }}
-              style={styles.avatar}
-            />
-            <View style={styles.chatDetails}>
-              <Text style={styles.groupName}>{item.title}</Text>
-              <Text style={styles.lastMessage}>
-                {item.lastMessage?.sender?.fullname
-                  ? `${item.lastMessage.sender.fullname}: ${item.lastMessage.content}`
-                  : item.lastMessage?.content}
+        renderItem={({ item }) => {
+          const isUnread = item.lastMessage &&
+            !item.lastMessage.read &&
+            item.lastMessage.sender.id !== userId;
+
+          return (
+            <TouchableOpacity
+              style={styles.chatItem}
+              onPress={() =>
+                navigation.navigate('ChatDetailScreen', {
+                  conversationId: item.id,
+                })
+              }
+            >
+              {/* Avatar with unread dot */}
+              <View style={{ position: 'relative' }}>
+                <Image
+                  source={{
+                    uri:
+                      item.imageUrl ||
+                      'https://png.pngtree.com/element_our/png_detail/20180904/group-avatar-icon-design-vector-png_75950.jpg',
+                  }}
+                  style={[
+                    styles.avatar,
+                    isUnread && { borderWidth: 2, borderColor: '#f00' },
+                  ]}
+                />
+                {isUnread && <View style={styles.unreadDot} />}
+              </View>
+
+              {/* Chat details */}
+              <View style={styles.chatDetails}>
+                <Text style={styles.groupName}>{item.title}</Text>
+                <Text
+                  style={[
+                    styles.lastMessage,
+                    isUnread && styles.unreadText
+                  ]}
+                  numberOfLines={1}
+                >
+                  {item.lastMessage?.sender?.fullname
+                    ? `${item.lastMessage.sender.fullname}: ${item.lastMessage.content}`
+                    : item.lastMessage?.content || 'Nhóm đã được tạo'}
+                </Text>
+              </View>
+
+              {/* Timestamp */}
+              <Text style={styles.time}>
+                {item.lastMessage?.timestamp &&
+                  DateUtil.formatDateToTimeAgo(
+                    new Date(item.lastMessage.timestamp)
+                  )}
               </Text>
-            </View>
-            <Text style={styles.time}>
-              {item.lastMessage?.timestamp &&
-                DateUtil.formatDateToTimeAgo(
-                  new Date(item.lastMessage.timestamp)
-                )}
-            </Text>
-          </TouchableOpacity>
-        )}
+            </TouchableOpacity>
+          );
+        }}
         ListEmptyComponent={
           !loading && !refreshing ? (
             <Text style={styles.emptyText}>Không có cuộc trò chuyện nào</Text>
@@ -160,16 +183,33 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
   },
-  avatar: { width: 50, height: 50, borderRadius: 25, marginRight: 12 },
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 12,
+  },
   chatDetails: { flex: 1 },
   groupName: { fontWeight: 'bold', color: 'black' },
   lastMessage: { color: 'gray' },
+  unreadText: { fontWeight: 'bold', color: '#f00' },
   time: { color: 'gray', fontSize: 12 },
   footer: { paddingVertical: 10, alignItems: 'center' },
   emptyText: {
     textAlign: 'center',
     padding: 20,
     color: '#888',
+  },
+  unreadDot: {
+    position: 'absolute',
+    top: 0,
+    right: 5,
+    width: 20,
+    height: 20,
+    backgroundColor: 'red',
+    borderRadius: 15,
+    borderWidth: 2,
+    borderColor: 'white',
   },
 });
 

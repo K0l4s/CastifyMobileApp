@@ -9,7 +9,8 @@ export type RootParamList = {
   RegisterFinal: undefined,
   VerifySuccess: undefined,
   ChatScreen: undefined,
-  ChatDetailScreen: { conversationId: string }
+  ChatDetailScreen: { conversationId: string },
+  ChatSettingScreen: { conversationId: string },
   Create: undefined,
   Notification: undefined;
 }
