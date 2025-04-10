@@ -1,10 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { 
   View, Text, StyleSheet, TouchableOpacity, ScrollView, 
   SafeAreaView, Share, ActivityIndicator, 
   Image
 } from 'react-native';
-import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
+import { RouteProp, useRoute, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import Orientation from 'react-native-orientation-locker';
 import { RootParamList } from '../type/navigationType';
@@ -17,6 +17,8 @@ import DateUtil from '../utils/dateUtil';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import CommonUtil from '../utils/commonUtil';
+import PodcastService from '../services/podcastService';
+import Toast from 'react-native-toast-message';
 
 // type PodcastScreenRouteProp = RouteProp<RootParamList, 'Podcast'>;
 // type PodcastScreenNavigationProp = StackNavigationProp<RootParamList, 'Podcast'>;
@@ -47,13 +49,31 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
   const [isSaved, setIsSaved] = useState(false);
   const videoRef = useRef<VideoRef>(null);
   const contentRef = useRef<BottomSheet>(null);
-
-  const snapPoints = ['50%', '90%'];
+  const [updatedPodcast, setUpdatedPodcast] = useState(podcast);
 
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
   const user = useSelector((state: RootState) => state.auth.user);
 
   const { showCommentSection, hideBottomSheet } = useBottomSheet();
+
+  const fetchPodcastDetails = async () => {
+    try {
+      console.log("Fetching podcast details...");
+      const response = await PodcastService.getPodcastById(podcast.id);
+      setUpdatedPodcast(response);
+      setIsLiked(response.liked);
+    } catch (error) {
+      console.error('Error fetching podcast details:', error);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isAuthenticated) {
+        fetchPodcastDetails(); // Tải lại dữ liệu khi màn hình được focus
+      }
+    }, [isAuthenticated, podcast.id])
+  );
 
   const handleShare = async () => {
     try {
@@ -88,19 +108,69 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
     contentRef.current?.close();
   };
 
-  const handleToggleLike = () => {
-    setIsLiked(!isLiked);
+  const handleToggleLike = async () => {
+    if (!isAuthenticated) {
+      Toast.show({
+        type: 'info',
+        text1: 'Please login to do this action!',
+        position: 'bottom',
+        visibilityTime: 2000,
+      });
+      return;
+    }
+
+    try {
+      await PodcastService.likePodcast(podcast.id);
+
+      // Cập nhật trạng thái isLiked và totalLikes
+      setIsLiked(!isLiked);
+      setUpdatedPodcast((prev) => ({
+        ...prev,
+        totalLikes: prev.totalLikes + (isLiked ? -1 : 1),
+      }));
+    } catch (error) {
+      console.error('Error liking podcast:', error);
+    }
   };
 
   const handleToggleSave = () => {
+    if (!isAuthenticated) {
+      Toast.show({
+        type: 'info',
+        text1: 'Please login to do this action!',
+        position: 'bottom',
+        visibilityTime: 2000,
+      });
+      return;
+    }
     setIsSaved(!isSaved);
   };
 
   const handleReport = () => {
+    if (!isAuthenticated) {
+      Toast.show({
+        type: 'info',
+        text1: 'Please login to do this action!',
+        position: 'bottom',
+        visibilityTime: 2000,
+      });
+      return;
+    }
+
     console.log('Report video');
   };
 
   const handleFollow = () => {
+    if (!isAuthenticated) {
+      Toast.show({
+        type: 'info',
+        text1: 'Please login to do this action!',
+        position: 'bottom',
+        visibilityTime: 2000,
+      });
+      return;
+    }
+    
     console.log('Follow user');
   };
 
@@ -111,6 +181,14 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
   const handleOpenProfile = () => {
     navigation.navigate('Profile', { username: podcast.user.username });
   };
+
+  if (!updatedPodcast) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#000" />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -197,7 +275,7 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
         <View style={styles.videoActions}>
           <TouchableOpacity onPress={handleToggleLike} style={styles.actionButton}>
             <Icon name={isLiked ? "heart" : "heart-outline"} size={24} color={isLiked ? "red" : "#666"} />
-            <Text style={styles.actionText}>{CommonUtil.formatNumber(podcast.totalLikes)}</Text>
+            <Text style={styles.actionText}>{CommonUtil.formatNumber(updatedPodcast.totalLikes)}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={handleToggleSave} style={styles.actionButton}>
             <Icon name={isSaved ? "bookmark" : "bookmark-outline"} size={24} color={isSaved ? "#270ad1" : "#666"} />
@@ -234,6 +312,11 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
 };
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   container: {
     flex: 1,
     backgroundColor: 'white',
