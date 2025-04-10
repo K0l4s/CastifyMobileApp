@@ -9,7 +9,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import Orientation from 'react-native-orientation-locker';
 import { RootParamList } from '../type/navigationType';
 import Icon from 'react-native-vector-icons/Ionicons';
-import Video, { VideoRef } from 'react-native-video';
+import Video, { OnProgressData, VideoRef } from 'react-native-video';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { useBottomSheet } from '../context/BottomSheetContext';
 import ContentBottomSheet from '../components/podcast/ContentBottomSheet';
@@ -19,6 +19,8 @@ import { RootState } from '../redux/store';
 import CommonUtil from '../utils/commonUtil';
 import PodcastService from '../services/podcastService';
 import Toast from 'react-native-toast-message';
+import { setupVideoViewTracking } from '../utils/video';
+import Animated, { runOnUI, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 
 // type PodcastScreenRouteProp = RouteProp<RootParamList, 'Podcast'>;
 // type PodcastScreenNavigationProp = StackNavigationProp<RootParamList, 'Podcast'>;
@@ -41,7 +43,7 @@ interface PodcastScreenProps {
 
 const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
   const { podcast } = route.params;
-  const [isPlaying, setIsPlaying] = useState(false);
+  // const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(true);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
@@ -51,11 +53,14 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
   const contentRef = useRef<BottomSheet>(null);
   const [updatedPodcast, setUpdatedPodcast] = useState(podcast);
 
+  // Shared value cho animation
+  const animatedViews = useSharedValue(podcast.views || 0);
+
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
   const user = useSelector((state: RootState) => state.auth.user);
 
   const { showCommentSection, hideBottomSheet } = useBottomSheet();
-
+  
   const fetchPodcastDetails = async () => {
     try {
       console.log("Fetching podcast details...");
@@ -73,6 +78,44 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
         fetchPodcastDetails(); // Tải lại dữ liệu khi màn hình được focus
       }
     }, [isAuthenticated, podcast.id])
+  );
+
+  const handleViewIncremented = () => {
+    setUpdatedPodcast((prev) => {
+      const newViews = (prev.views || 0) + 1;
+
+      runOnUI(() => {
+        animatedViews.value = withTiming(newViews, { duration: 500 }); // Animation trong 500ms
+      })();
+
+      return {
+        ...prev,
+        views: newViews,
+      };
+    });
+  };
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          scale: withSequence(
+            withTiming(animatedViews.value > podcast.views ? 1.2 : 1, { duration: 200 }), // Phóng to 200ms
+            withTiming(1, { duration: 200 }) // Trở lại kích thước ban đầu
+          ),
+        },
+      ],
+    };
+  });
+
+  const videoTrackingRef = useRef(
+    setupVideoViewTracking(
+      videoRef, 
+      PodcastService.incrementPodcastViews, 
+      podcast.id,
+      handleViewIncremented,
+      podcast.duration || 0
+    )
   );
 
   const handleShare = async () => {
@@ -170,7 +213,7 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
       });
       return;
     }
-    
+
     console.log('Follow user');
   };
 
@@ -218,8 +261,8 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
             controls
             resizeMode="contain"
             onBuffer={({ isBuffering }) => setIsBuffering(isBuffering)}
-            onProgress={() => setIsPlaying(true)}
-            onEnd={() => setIsPlaying(false)}
+            onProgress={videoTrackingRef.current.handleProgress}
+            onEnd={videoTrackingRef.current.handleEnd}
             poster={podcast.thumbnailUrl || ""}
           />
           {isBuffering && (
@@ -239,7 +282,9 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
           <Text style={styles.title}>{podcast.title}</Text>
           <View style={styles.statsContainer}>
             <Icon name="eye-outline" size={16} color="#666" />
-            <Text style={styles.statsText}>{CommonUtil.formatNumber(podcast.views) || 0} views</Text>
+            <Animated.Text style={[styles.statsText, animatedStyle]}>
+              {CommonUtil.formatNumber(updatedPodcast.views || 0)} views
+            </Animated.Text>
             <Icon name="time-outline" size={16} color="#666" style={styles.statsIcon} />
             <Text style={styles.statsText}>{DateUtil.formatDateToTimeAgo(new Date(podcast.createdDay))} ago</Text>
           </View>

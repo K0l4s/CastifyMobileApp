@@ -141,6 +141,15 @@ class PodcastService {
       throw error;
     }
   };
+
+  static async incrementPodcastViews(podcastId: string) {
+    try {
+      const response = await axiosInstance.post(`/api/v1/podcast/${podcastId}/inc-views`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
 }
   
 export default PodcastService;
