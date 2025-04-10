@@ -12,4 +12,5 @@ export type RootParamList = {
   ChatDetailScreen: { conversationId: string }
   Create: undefined,
   Notification: undefined;
+  Search: undefined;
 }

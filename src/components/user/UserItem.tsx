@@ -1,14 +1,28 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { userCard } from '../../models/User';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootParamList } from '../../type/navigationType';
 
 interface UserItemProps {
   user: userCard;
 }
 
 const UserItem: React.FC<UserItemProps> = ({ user }) => {
+  const navigation = useNavigation<StackNavigationProp<RootParamList>>();
+
+  const handleOpenProfile = (username: string) => {
+    navigation.navigate('Profile', { username });
+  };
+
+  const handleFollowUser = (userId: string) => {
+    console.log(`Follow user with ID: ${userId}`);
+    // Thực hiện logic follow/unfollow tại đây
+  };
+
   return (
-    <TouchableOpacity style={styles.container}>
+    <TouchableOpacity style={styles.container} onPress={() => handleOpenProfile(user.username)}>
       <View style={styles.avatarContainer}>
         <Image source={{ uri: user.avatarUrl }} style={styles.avatar} />
       </View>
@@ -17,7 +31,7 @@ const UserItem: React.FC<UserItemProps> = ({ user }) => {
         <Text style={styles.username}>{user.username}</Text>
         <Text style={styles.stats}>{user.totalFollower || 0} followers {" "} {user.totalPost || 0} Podcasts</Text>
       </View>
-      <TouchableOpacity style={styles.followButton}>
+      <TouchableOpacity style={styles.followButton} onPress={() => handleFollowUser(user.id)}>
         <Text style={styles.followText}>Follow</Text>
       </TouchableOpacity>
     </TouchableOpacity>
