@@ -109,11 +109,18 @@ const ChatScreen = () => {
           return (
             <TouchableOpacity
               style={styles.chatItem}
-              onPress={() =>
+              onPress={() => {
                 navigation.navigate('ChatDetailScreen', {
                   conversationId: item.id,
                 })
-              }
+                chatData.forEach((chat) => {
+                  if (chat.id === item.id && chat.lastMessage) {
+                    chat.lastMessage.read = true;
+                  }
+                });
+                setChatData([...chatData]);
+              }}
+              
             >
               {/* Avatar with unread dot */}
               <View style={{ position: 'relative' }}>
