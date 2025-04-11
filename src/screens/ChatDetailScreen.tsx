@@ -4,7 +4,7 @@ import {
   KeyboardAvoidingView, Platform
 } from 'react-native';
 import { useRoute, useNavigation, NavigationProp, RouteProp } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { conversationService } from '../services/conversationService';
 import DateUtil from '../utils/dateUtil';
@@ -12,6 +12,7 @@ import useStomp from '../hooks/useStomp';
 import { ConversationDetail, FullMemberInfor } from '../models/Conversation';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootParamList } from '../type/navigationType';
+import { shortUser } from '../models/User';
 
 interface Message {
   id: string;
@@ -159,6 +160,7 @@ const ChatDetailScreen = () => {
     if (object) {
       const newMsg: Message = object;
       setMessages((prev) => [newMsg, ...prev]);
+      conversationService.readMsg(conversationId);
     }
   }, [object]);
   const [members, setMembers] = useState<FullMemberInfor[]>([]);
@@ -175,6 +177,44 @@ const ChatDetailScreen = () => {
     fetchMembers();
   }
     , [conversationId]);
+    const currentUser = useSelector((state: RootState) => state.auth.user?.id);
+    const readObject = useStomp({
+      subscribeUrl: `/topic/read/${conversationId}`,
+      trigger: [conversationId, currentUser],
+      flag: conversationId ? true : false
+    });
+    const dispatch = useDispatch();
+    useEffect(() => {
+      if (readObject) {
+        console.log("Read object")
+        console.log(readObject)
+        const newMessage: shortUser = readObject;
+        console.log("New")
+        console.log(newMessage)
+        // dispatch(setClick(!click))
+        console.log(newMessage)
+        console.log(members)
+        setMembers((prevMembers) =>
+          prevMembers.map((member) => {
+            if (member.members.id === newMessage.id && messages.length > 0) {
+              console.log("Hio")
+              return {
+                ...member,
+                lastReadMessage: {
+                  // ...member.lastReadMessage,
+                  lastMessageId: messages[0].id,
+                  lastReadTime: new Date().toString()
+                },
+              };
+            }
+            return member;
+          })
+        );
+        console.log(members)
+        // window.scrollTo(0, document.body.scrollHeight);
+      }
+    }
+      , [readObject]);
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
       <FlatList

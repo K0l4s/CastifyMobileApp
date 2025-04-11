@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { 
   View, Text, StyleSheet, TouchableOpacity, ScrollView, 
   SafeAreaView, Share, ActivityIndicator, 
@@ -21,6 +21,7 @@ import PodcastService from '../services/podcastService';
 import Toast from 'react-native-toast-message';
 import { setupVideoViewTracking } from '../utils/video';
 import Animated, { runOnUI, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
+import SuggestedPodcasts from '../components/podcast/SuggestedPodcasts';
 
 // type PodcastScreenRouteProp = RouteProp<RootParamList, 'Podcast'>;
 // type PodcastScreenNavigationProp = StackNavigationProp<RootParamList, 'Podcast'>;
@@ -43,6 +44,7 @@ interface PodcastScreenProps {
 
 const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
   const { podcast } = route.params;
+  const [genres, setGenres] = useState<string[]>(podcast.genres?.map((genre) => genre.id) || []);
   // const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(true);
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -66,6 +68,7 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
       console.log("Fetching podcast details...");
       const response = await PodcastService.getPodcastById(podcast.id);
       setUpdatedPodcast(response);
+      setGenres(response.genres?.map((genre) => genre.id) || []);
       setIsLiked(response.liked);
     } catch (error) {
       console.error('Error fetching podcast details:', error);
@@ -79,6 +82,17 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
       }
     }, [isAuthenticated, podcast.id])
   );
+
+  useEffect(() => {
+    videoTrackingRef.current = setupVideoViewTracking(
+      videoRef,
+      PodcastService.incrementPodcastViews,
+      podcast.id,
+      handleViewIncremented,
+      podcast.duration || 0
+    );
+    setGenres(podcast.genres?.map((genre) => genre.id) || []);
+  }, [podcast.id]);
 
   const handleViewIncremented = () => {
     setUpdatedPodcast((prev) => {
@@ -332,6 +346,11 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
           </TouchableOpacity>
         </View>
         
+        <SuggestedPodcasts 
+          genreIds={genres} 
+          currentPodcastId={podcast.id} 
+        />
+
       </ScrollView>
         
       {/* Sử dụng ContentBottomSheet */}

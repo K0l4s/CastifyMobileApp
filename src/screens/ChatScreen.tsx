@@ -120,7 +120,7 @@ const ChatScreen = () => {
                 });
                 setChatData([...chatData]);
               }}
-              
+              activeOpacity={0.7}
             >
               {/* Avatar with unread dot */}
               <View style={{ position: 'relative' }}>
