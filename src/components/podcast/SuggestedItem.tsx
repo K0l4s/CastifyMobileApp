@@ -14,7 +14,7 @@ interface PodcastItemProps {
   podcast: Podcast;
 }
 
-const PodcastItem: React.FC<PodcastItemProps> = ({ podcast }) => {
+const SuggestedItem: React.FC<PodcastItemProps> = ({ podcast }) => {
   const navigation = useNavigation<StackNavigationProp<RootParamList>>();
   const { showBottomSheet } = useBottomSheet();
 
@@ -35,7 +35,7 @@ const PodcastItem: React.FC<PodcastItemProps> = ({ podcast }) => {
         <Image source={podcast.user.avatarUrl ? { uri: podcast.user.avatarUrl } : defaultAvatar} style={styles.avatar} />
         <View style={styles.textContainer}>
           <Text style={styles.title} numberOfLines={2} ellipsizeMode='tail'>{podcast.title}</Text>
-          <Text style={styles.subtitle} numberOfLines={1}>{podcast.user.fullname}</Text>
+          <Text style={styles.subtitle} numberOfLines={1}>{podcast.user.fullname} </Text>
           <Text style={styles.subtitle}>
             {podcast.views} views · {DateUtil.formatDateToTimeAgo(new Date(podcast.createdDay))}
           </Text>
@@ -50,6 +50,7 @@ const PodcastItem: React.FC<PodcastItemProps> = ({ podcast }) => {
 
 const styles = StyleSheet.create({
   itemContainer: {
+    width: 300,
     marginVertical: 10,
     backgroundColor: '#fff',
     borderRadius: 10,
@@ -104,4 +105,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default React.memo(PodcastItem);
+export default React.memo(SuggestedItem);

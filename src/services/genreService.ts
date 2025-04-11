@@ -9,6 +9,16 @@ class GenreService {
       throw error;
     }
   }
+
+
+  static async getGenresByList(genreIds: string[]) {
+    try {
+      const response = await axiosInstance.post('/api/v1/genre/namesByList', genreIds);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
 }
 
 export default GenreService;
