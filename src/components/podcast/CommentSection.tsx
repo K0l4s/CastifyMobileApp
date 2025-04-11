@@ -38,6 +38,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ sheetRef, podcastId, to
   const confirmDialogRef = useRef<BottomSheet>(null);
 
   const [parentComment, setParentComment] = useState<Comment | null>(null);
+  const [replyingToUser, setReplyingToUser] = useState<string | null>(null);
   const inputRef = useRef<TextInput>(null); 
 
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
@@ -88,13 +89,51 @@ const CommentSection: React.FC<CommentSectionProps> = ({ sheetRef, podcastId, to
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
+
     try {
-      const response = await CommentService.addComment({
+      // Determine the top-level parent comment ID
+      const topLevelParentId = parentComment ? parentComment.id : selectedCommentId;
+  
+      // Get the username of the comment being replied to
+      const mentionedUser = replies.find((reply) => reply.id === selectedCommentId)?.user.username ||
+                            comments.find((comment) => comment.id === selectedCommentId)?.user.username;
+      
+      const replyingTo = replies.find((reply) => reply.id === selectedCommentId)?.user.username ||
+          comments.find((comment) => comment.id === selectedCommentId)?.user.username;
+
+      const payload = {
         podcastId,
-        content: newComment,
-      });
-      setComments((prevComments) => [response, ...prevComments]); // Thêm bình luận mới vào đầu danh sách
-      setNewComment('');
+        content: mentionedUser && replyingTo != user?.username ? `@${mentionedUser} ${newComment}` : newComment,
+        parentId: topLevelParentId || undefined, // Always use the top-level parent ID
+      };
+  
+      const response = await CommentService.addComment(payload);
+  
+      if (selectedCommentId) {
+        // If replying to a comment, update the replies list
+        setReplies((prevReplies) => [...prevReplies, response]);
+  
+        // Update the parent comment's totalReplies in the comments list
+        setComments((prevComments) =>
+          prevComments.map((comment) =>
+            comment.id === topLevelParentId
+              ? { ...comment, totalReplies: comment.totalReplies + 1 }
+              : comment
+          )
+        );
+  
+        setParentComment((prevParent) =>
+          prevParent
+            ? { ...prevParent, totalReplies: prevParent.totalReplies + 1 }
+            : prevParent
+        );
+      } else {
+        // If adding a new comment, update the comments list
+        setComments((prevComments) => [response, ...prevComments]);
+      }
+  
+      setNewComment(''); // Clear the input field
+      setReplyingToUser(null); // Clear the "Replying to" text
     } catch (error) {
       console.error('Error adding comment:', error);
     }
@@ -142,7 +181,20 @@ const CommentSection: React.FC<CommentSectionProps> = ({ sheetRef, podcastId, to
   };
 
   const handleReplyToComment = (commentId: string) => {
-    setSelectedCommentId(commentId);
+    const parent = comments.find((comment) => comment.id === commentId) || parentComment;
+    const replyingTo = replies.find((reply) => reply.id === commentId)?.user.username ||
+                      comments.find((comment) => comment.id === commentId)?.user.username;
+
+    setParentComment(parent || null); // Ensure the top-level parent is set
+    setSelectedCommentId(commentId); // Set the specific comment being replied to
+
+    // If not replying to your own comment
+    if (replyingTo !== user?.username) {
+      setReplyingToUser(replyingTo || null);
+    } else {
+      setReplyingToUser(null); // Clear the "Replying to" text if it's your own comment
+    }
+
     setTimeout(() => {
       inputRef.current?.focus();
     }, 300);
@@ -152,6 +204,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ sheetRef, podcastId, to
     setSelectedCommentId(null);
     setReplies([]);
     setParentComment(null);
+    setReplyingToUser(null);
   };
 
   const handleMenuPress = (commentId: string) => {
@@ -168,20 +221,47 @@ const CommentSection: React.FC<CommentSectionProps> = ({ sheetRef, podcastId, to
     if (!selectedCommentId) return;
   
     try {
+      // Call the API to delete the comment (and its children if supported by the backend)
       await CommentService.deleteComment([selectedCommentId]);
   
-      // Cập nhật danh sách bình luận trong FlatList
+      // Check if the selected comment is a parent comment
+      if (selectedCommentId === parentComment?.id) {
+        // If deleting a parent comment, remove it from the comments list
+        setComments((prevComments) =>
+          prevComments.filter((comment) => comment.id !== selectedCommentId)
+        );
+  
+        // Clear the replies list and reset the parent comment
+        setReplies([]);
+        setParentComment(null);
+      } else {
+        // If deleting a reply, remove it from the replies list
+        setReplies((prevReplies) =>
+          prevReplies.filter((reply) => reply.id !== selectedCommentId)
+        );
+  
+        // Update the parent comment's totalReplies in the comments list
+        setComments((prevComments) =>
+          prevComments.map((comment) =>
+            comment.id === parentComment?.id
+              ? { ...comment, totalReplies: comment.totalReplies - 1 }
+              : comment
+          )
+        );
+      }
+  
+      // Handle case where the comment is in the comments list but not in replies
       setComments((prevComments) =>
         prevComments.filter((comment) => comment.id !== selectedCommentId)
       );
   
-      console.log(`Deleted comment ID: ${selectedCommentId}`);
+      // Ensure the UI updates immediately
+      setSelectedCommentId(null); // Clear the selected comment ID
     } catch (error) {
       console.error(`Failed to delete comment ID: ${selectedCommentId}`, error);
     } finally {
-      setIsConfirmVisible(false);
-      setIsOptionsVisible(false);
-      setSelectedCommentId(null);
+      setIsConfirmVisible(false); // Close the confirmation dialog
+      setIsOptionsVisible(false); // Close the options menu
     }
   };
 
@@ -352,17 +432,22 @@ const CommentSection: React.FC<CommentSectionProps> = ({ sheetRef, podcastId, to
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.inputContainer}
         >
-          <TextInput
-            ref={inputRef}
-            style={styles.input}
-            placeholder="Add a comment..."
-            placeholderTextColor="#999"
-            value={newComment}
-            onChangeText={setNewComment}
-          />
-          <TouchableOpacity style={styles.sendButton} onPress={handleAddComment}>
-            <Text style={styles.sendButtonText}>Send</Text>
-          </TouchableOpacity>
+          {replyingToUser && selectedCommentId && (
+            <Text style={styles.replyingToText}>Replying to @{replyingToUser}</Text>
+          )}
+          <View style={styles.inputWrapper}>
+            <TextInput
+              ref={inputRef}
+              style={styles.input}
+              placeholder={selectedCommentId ? 'Reply to comment...' : 'Add a comment...'}
+              placeholderTextColor="#999"
+              value={newComment}
+              onChangeText={setNewComment}
+            />
+            <TouchableOpacity style={styles.sendButton} onPress={handleAddComment}>
+              <Text style={styles.sendButtonText}>Send</Text>
+            </TouchableOpacity>
+          </View>
         </KeyboardAvoidingView>
       )}
       
@@ -370,7 +455,12 @@ const CommentSection: React.FC<CommentSectionProps> = ({ sheetRef, podcastId, to
       <CommentOptionsBottomSheet
         sheetRef={optionsSheetRef}
         isVisible={isOptionsVisible}
-        isOwner={selectedCommentId ? comments.find((c) => c.id === selectedCommentId)?.user.id === user?.id : false}
+        isOwner={
+          selectedCommentId
+            ? replies.find((r) => r.id === selectedCommentId)?.user.id === user?.id ||
+              comments.find((c) => c.id === selectedCommentId)?.user.id === user?.id
+            : false
+        }
         onClose={() => setIsOptionsVisible(false)}
         onEdit={handleEditComment}
         onDelete={() => setIsConfirmVisible(true)}
@@ -393,7 +483,8 @@ const CommentSection: React.FC<CommentSectionProps> = ({ sheetRef, podcastId, to
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 80,
     backgroundColor: 'white',
   },
   closeButton: {
@@ -507,12 +598,21 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     borderTopWidth: 1,
     borderTopColor: '#ddd',
     padding: 10,
     backgroundColor: 'white',
+  },
+  replyingToText: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 5,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
   },
   input: {
     flex: 1,
