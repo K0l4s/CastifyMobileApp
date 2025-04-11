@@ -150,6 +150,49 @@ class PodcastService {
       throw error;
     }
   };
+
+  static async getFollowingPodcast(page: number, size: number) {
+    try {
+      const response = await axiosInstanceAuth.get<PodcastResponse>("/api/v1/podcast/following", {
+        params: {
+          page,
+          size
+        }
+      });
+      response.data.content.forEach(podcast => {
+        podcast.videoUrl = `${BaseApi}/api/v1/podcast/video?path=${encodeURIComponent(podcast.videoUrl)}`;
+      });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  static async getSuggestedPodcastsByGenres(
+    id: string,
+    genreIds: string[],
+    page = 0,
+    size = 5
+  ) {
+    try {
+      const response = await axiosInstance.get<PodcastResponse>(
+        `/api/v1/podcast/suggested-by-genres/${id}`, {
+        params: {
+          genreIds: genreIds.join(','),
+          page,
+          size
+        }
+      });
+  
+      response.data.content.forEach(podcast => {
+        podcast.videoUrl = `${BaseApi}/api/v1/podcast/video?path=${encodeURIComponent(podcast.videoUrl)}`;
+      });
+  
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
 }
   
 export default PodcastService;
