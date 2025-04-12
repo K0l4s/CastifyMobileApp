@@ -14,4 +14,4 @@ export type RootParamList = {
   Create: undefined,
   Notification: undefined;
   Search: undefined;
-}
+} 
