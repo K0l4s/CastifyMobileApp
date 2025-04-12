@@ -11,6 +11,7 @@ import {
     Alert,
     StyleSheet
 } from 'react-native';
+import { launchImageLibrary } from 'react-native-image-picker';
 import { ConversationDetail, FullMemberInfor } from '../models/Conversation';
 import { conversationService } from '../services/conversationService';
 import { RootParamList } from '../type/navigationType';
@@ -36,7 +37,20 @@ const ChatSettingScreen = () => {
     });
     const [members, setMembers] = useState<FullMemberInfor[]>([]);
     const [isOpenAddMembers, setIsOpenAddMembers] = useState(false);
-    const [isEditable, setIsEditable] = useState(false); // Variable to track if user has editing permissions
+    const [isEditable, setIsEditable] = useState(false);
+    const [groupName, setGroupName] = useState('');
+    const [isEdit, setIsEdit] = useState(false);
+    const [isNameChanged, setIsNameChanged] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [avatar, setAvatar] = useState('');
+    const [selectedFile, setSelectedFile] = useState<any>(null);
+
+    useEffect(() => {
+        navigation.setOptions({
+            title: 'Chat Settings',
+            headerTitleAlign: 'center',
+        });
+    }, []);
 
     useEffect(() => {
         const fetchChatDetail = async () => {
@@ -72,42 +86,30 @@ const ChatSettingScreen = () => {
         fetchMembers();
     }, [chatDetail]);
 
-    // Determine if the current user has permission to edit
     useEffect(() => {
         const currentMember = members.find(m => m.members.id === userId);
-        if (currentMember?.role === 'LEADER' || currentMember?.role === 'DEPUTY') {
-            setIsEditable(true);
-        } else {
-            setIsEditable(false);
-        }
+        setIsEditable(currentMember?.role === 'LEADER' || currentMember?.role === 'DEPUTY');
     }, [members, userId]);
 
-    const [groupName, setGroupName] = useState(chatDetail.title);
-    const [isEdit, setIsEdit] = useState(false);
-    const [isNameChanged, setIsNameChanged] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [avatar, setAvatar] = useState(chatDetail.imageUrl);
-    const [selectedFile, setSelectedFile] = useState<any>(null);
-
-    useEffect(() => {
-        navigation.setOptions({
-            title: 'Chat Settings',
-            headerTitleAlign: 'center',
+    const handleSelectImage = () => {
+        launchImageLibrary({ mediaType: 'photo' }, response => {
+            if (response.assets && response.assets.length > 0) {
+                const selectedImage = response.assets[0];
+                setAvatar(selectedImage.uri || '');
+                setSelectedFile({
+                    uri: selectedImage.uri,
+                    type: selectedImage.type,
+                    name: selectedImage.fileName || 'avatar.jpg',
+                });
+            }
         });
-    }, []);
+    };
 
     const handleConfirmImage = async () => {
         if (!selectedFile) return;
         try {
             setIsLoading(true);
-            await conversationService.changeImage(
-                {
-                    uri: selectedFile.uri,
-                    name: 'avatar.jpg',
-                    type: 'image/jpeg'
-                } as any,
-                chatDetail.id
-            );
+            await conversationService.changeImage(selectedFile as any, chatDetail.id);
             setSelectedFile(null);
         } catch (err) {
             console.error('Failed to update image', err);
@@ -162,7 +164,7 @@ const ChatSettingScreen = () => {
             )}
 
             {isEditable && (
-                <TouchableOpacity style={styles.avatarWrap} /* onPress={pickImage} */>
+                <TouchableOpacity style={styles.avatarWrap} onPress={handleSelectImage}>
                     <Image source={{ uri: avatar }} style={styles.avatar} />
                     <View style={styles.avatarOverlay}>
                         <Text style={styles.avatarPlus}>+</Text>
