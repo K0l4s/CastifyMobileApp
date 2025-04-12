@@ -57,14 +57,26 @@ export interface updateUser {
     middleName: string;
     lastName: string;
     birthday: string;
-    hamlet: string;
-    addressElement: string;
+    // address: string;
+    // location: {
+    //     id: string,
+    //     name: string,
+    //     district: {
+    //         id: string,
+    //         name: string,
+    //         city: {
+    //             id: string,
+    //             name: string
+    //         }
+    //     }
+    // },
+    wardId: string;
+    // locality: string,
+    addressElements: string;
     ward: string;
     district: string;
-    province: string;
+    provinces: string;
     phone: string;
-    avatarUrl: string;
-    coverUrl: string;
 }
 export interface userCard {
     id: string;
@@ -104,6 +116,7 @@ export interface userRegister {
     confirmPassword:string,
     birthday:Date,
     // address:string,
+    wardId:string,
     addressElements: string,
     ward:string,
     district:string,
