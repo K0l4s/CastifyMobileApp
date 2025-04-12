@@ -3,13 +3,16 @@ import {
   View, Text, FlatList, TextInput, TouchableOpacity, Image,
   KeyboardAvoidingView, Platform
 } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useRoute, useNavigation, NavigationProp, RouteProp } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import { conversationService } from '../services/conversationService';
 import DateUtil from '../utils/dateUtil';
 import useStomp from '../hooks/useStomp';
 import { ConversationDetail, FullMemberInfor } from '../models/Conversation';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootParamList } from '../type/navigationType';
+import { shortUser } from '../models/User';
 
 interface Message {
   id: string;
@@ -19,8 +22,9 @@ interface Message {
 }
 
 const ChatDetailScreen = () => {
-  const route = useRoute();
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<RootParamList>>();
+    const route = useRoute();
+
   const { conversationId } = route.params as { conversationId: string };
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -32,7 +36,6 @@ const ChatDetailScreen = () => {
 
   const flatListRef = useRef<FlatList<Message>>(null);
   const userId = useSelector((state: RootState) => state.auth.user?.id);
-
   const fetchMessages = async (pageToLoad: number) => {
     if (isLoading || !hasMore) return;
     setIsLoading(true);
@@ -123,16 +126,19 @@ const ChatDetailScreen = () => {
         fontSize: 20,
         fontWeight: 'bold',
       },
-      headerLeft: () => (
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 16 }}>
-          <Text style={{ fontSize: 20 }}>←</Text>
-        </TouchableOpacity>
-      ),
+      // headerLeft: () => (
+      //   <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 16 }}>
+      //     <Text style={{ fontSize: 20 }}>←</Text>
+      //   </TouchableOpacity>
+      // ),
       headerRight: () => (
         <TouchableOpacity
-          //onPress={() => 
-          // navigation.navigate('GroupInfo', { conversationId })
-          //} 
+          onPress={() => {
+            navigation.navigate('ChatSettingScreen', {
+              conversationId: conversationId,
+            })
+          }
+          }
           style={{ marginRight: 16 }}>
           <Text style={{ fontSize: 20 }}>
             {/* setting icon */}
@@ -141,7 +147,7 @@ const ChatDetailScreen = () => {
         </TouchableOpacity>
       ),
     });
-  }, [navigation,chatDetail]);
+  }, [navigation, chatDetail]);
 
   const object = useStomp({
     subscribeUrl: `/topic/group/${conversationId}`,
@@ -153,6 +159,7 @@ const ChatDetailScreen = () => {
     if (object) {
       const newMsg: Message = object;
       setMessages((prev) => [newMsg, ...prev]);
+      conversationService.readMsg(conversationId);
     }
   }, [object]);
   const [members, setMembers] = useState<FullMemberInfor[]>([]);
@@ -169,6 +176,44 @@ const ChatDetailScreen = () => {
     fetchMembers();
   }
     , [conversationId]);
+    const currentUser = useSelector((state: RootState) => state.auth.user?.id);
+    const readObject = useStomp({
+      subscribeUrl: `/topic/read/${conversationId}`,
+      trigger: [conversationId, currentUser],
+      flag: conversationId ? true : false
+    });
+    const dispatch = useDispatch();
+    useEffect(() => {
+      if (readObject) {
+        console.log("Read object")
+        console.log(readObject)
+        const newMessage: shortUser = readObject;
+        console.log("New")
+        console.log(newMessage)
+        // dispatch(setClick(!click))
+        console.log(newMessage)
+        console.log(members)
+        setMembers((prevMembers) =>
+          prevMembers.map((member) => {
+            if (member.members.id === newMessage.id && messages.length > 0) {
+              console.log("Hio")
+              return {
+                ...member,
+                lastReadMessage: {
+                  // ...member.lastReadMessage,
+                  lastMessageId: messages[0].id,
+                  lastReadTime: new Date().toString()
+                },
+              };
+            }
+            return member;
+          })
+        );
+        console.log(members)
+        // window.scrollTo(0, document.body.scrollHeight);
+      }
+    }
+      , [readObject]);
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
       <FlatList
