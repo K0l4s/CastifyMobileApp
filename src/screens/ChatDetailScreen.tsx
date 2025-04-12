@@ -36,7 +36,6 @@ const ChatDetailScreen = () => {
 
   const flatListRef = useRef<FlatList<Message>>(null);
   const userId = useSelector((state: RootState) => state.auth.user?.id);
-
   const fetchMessages = async (pageToLoad: number) => {
     if (isLoading || !hasMore) return;
     setIsLoading(true);

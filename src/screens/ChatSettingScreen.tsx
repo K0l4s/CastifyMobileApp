@@ -15,11 +15,16 @@ import { ConversationDetail, FullMemberInfor } from '../models/Conversation';
 import { conversationService } from '../services/conversationService';
 import { RootParamList } from '../type/navigationType';
 import { StackNavigationProp } from '@react-navigation/stack';
+import AddMembersModal from '../components/chat/AddMembersModal';
+import { useSelector } from 'react-redux';
+import { RootState } from '../redux/store';
 
 const ChatSettingScreen = () => {
     const route = useRoute();
     const navigation = useNavigation<StackNavigationProp<RootParamList>>();
     const { conversationId } = route.params as { conversationId: string };
+    const userId = useSelector((state: RootState) => state.auth.user?.id);
+    
     const [chatDetail, setChatDetail] = useState<ConversationDetail>({
         id: '',
         title: '',
@@ -30,6 +35,9 @@ const ChatSettingScreen = () => {
         active: true
     });
     const [members, setMembers] = useState<FullMemberInfor[]>([]);
+    const [isOpenAddMembers, setIsOpenAddMembers] = useState(false);
+    const [isEditable, setIsEditable] = useState(false); // Variable to track if user has editing permissions
+
     useEffect(() => {
         const fetchChatDetail = async () => {
             try {
@@ -40,14 +48,13 @@ const ChatSettingScreen = () => {
                 setAvatar(response.data.imageUrl);
             } catch (error) {
                 console.error('Failed to fetch chat detail:', error);
-            }
-            finally {
+            } finally {
                 setIsLoading(false);
             }
         };
         fetchChatDetail();
-    }
-        , [conversationId]);
+    }, [conversationId]);
+
     useEffect(() => {
         const fetchMembers = async () => {
             if (chatDetail) {
@@ -57,15 +64,23 @@ const ChatSettingScreen = () => {
                     setMembers(response.data);
                 } catch (error) {
                     console.error('Failed to fetch members:', error);
-                }
-                finally {
+                } finally {
                     setIsLoading(false);
                 }
             }
-        }
+        };
         fetchMembers();
-    }
-        , [chatDetail]);
+    }, [chatDetail]);
+
+    // Determine if the current user has permission to edit
+    useEffect(() => {
+        const currentMember = members.find(m => m.members.id === userId);
+        if (currentMember?.role === 'LEADER' || currentMember?.role === 'DEPUTY') {
+            setIsEditable(true);
+        } else {
+            setIsEditable(false);
+        }
+    }, [members, userId]);
 
     const [groupName, setGroupName] = useState(chatDetail.title);
     const [isEdit, setIsEdit] = useState(false);
@@ -73,7 +88,6 @@ const ChatSettingScreen = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [avatar, setAvatar] = useState(chatDetail.imageUrl);
     const [selectedFile, setSelectedFile] = useState<any>(null);
-    const [isOpenAdd, setIsOpenAdd] = useState(false);
 
     useEffect(() => {
         navigation.setOptions({
@@ -127,7 +141,6 @@ const ChatSettingScreen = () => {
                 onPress: async () => {
                     try {
                         setIsLoading(true);
-                        console.log('Deleting member:', memberId, conversationId);
                         await conversationService.deleteMembers(memberId, conversationId);
                         setMembers(prev => prev.filter(m => m.members.id !== memberId));
                     } catch (err) {
@@ -148,14 +161,14 @@ const ChatSettingScreen = () => {
                 </View>
             )}
 
-            <TouchableOpacity style={styles.avatarWrap}
-            // onPress={pickImage}
-            >
-                <Image source={{ uri: avatar }} style={styles.avatar} />
-                <View style={styles.avatarOverlay}>
-                    <Text style={styles.avatarPlus}>+</Text>
-                </View>
-            </TouchableOpacity>
+            {isEditable && (
+                <TouchableOpacity style={styles.avatarWrap} /* onPress={pickImage} */>
+                    <Image source={{ uri: avatar }} style={styles.avatar} />
+                    <View style={styles.avatarOverlay}>
+                        <Text style={styles.avatarPlus}>+</Text>
+                    </View>
+                </TouchableOpacity>
+            )}
 
             {selectedFile && (
                 <View style={styles.row}>
@@ -174,17 +187,19 @@ const ChatSettingScreen = () => {
             <View style={styles.section}>
                 <View style={styles.rowBetween}>
                     <Text style={styles.label}>Group Name</Text>
-                    <TouchableOpacity onPress={() => {
-                        if (isEdit) {
-                            setIsEdit(false);
-                            setGroupName(chatDetail.title);
-                            setIsNameChanged(false);
-                        } else {
-                            setIsEdit(true);
-                        }
-                    }}>
-                        <Text style={styles.changeBtn}>{isEdit ? 'Cancel' : 'Change'}</Text>
-                    </TouchableOpacity>
+                    {isEditable && (
+                        <TouchableOpacity onPress={() => {
+                            if (isEdit) {
+                                setIsEdit(false);
+                                setGroupName(chatDetail.title);
+                                setIsNameChanged(false);
+                            } else {
+                                setIsEdit(true);
+                            }
+                        }}>
+                            <Text style={styles.changeBtn}>{isEdit ? 'Cancel' : 'Change'}</Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
                 {isEdit ? (
                     <>
@@ -210,9 +225,11 @@ const ChatSettingScreen = () => {
             <View style={styles.section}>
                 <View style={styles.rowBetween}>
                     <Text style={styles.label}>Members ({chatDetail.memberSize})</Text>
-                    <TouchableOpacity onPress={() => setIsOpenAdd(true)}>
-                        <Text style={styles.changeBtn}>Add</Text>
-                    </TouchableOpacity>
+                    {isEditable && (
+                        <TouchableOpacity onPress={() => setIsOpenAddMembers(true)}>
+                            <Text style={styles.changeBtn}>Add</Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
                 <FlatList
                     data={members}
@@ -232,21 +249,26 @@ const ChatSettingScreen = () => {
                                     ]}>
                                         {item.members.fullname}
                                     </Text>
-                                    {item.role === 'LEADER' && (
-                                        // <AntDesign name="key" size={14} color="gold" />
-                                        <Text style={styles.leader}>Leader</Text>
-                                    )}
+                                    {item.role === 'LEADER' && <Text style={styles.leader}>Leader</Text>}
                                 </View>
                                 <Text style={styles.username}>@{item.members.username}</Text>
                             </View>
-                            <TouchableOpacity onPress={() => handleDeleteMember(item.members.id)}>
-                                {/* <MaterialIcons name="remove-circle" size={24} color="red" /> */}
-                                <Text style={styles.changeBtn}>Remove</Text>
-                            </TouchableOpacity>
+                            {isEditable && (
+                                <TouchableOpacity onPress={() => handleDeleteMember(item.members.id)}>
+                                    <Text style={styles.changeBtn}>Remove</Text>
+                                </TouchableOpacity>
+                            )}
                         </View>
                     )}
                 />
             </View>
+            <AddMembersModal
+                isOpen={isOpenAddMembers}
+                onClose={() => setIsOpenAddMembers(false)}
+                members={members}
+                setMembers={setMembers}
+                groupId={conversationId}
+            />
         </View>
     );
 };
