@@ -134,12 +134,25 @@ const ProfileScreen: React.FC = () => {
   return (
     <GestureHandlerRootView style={styles.container}>
       <View style={styles.header}>
+        {/* Back Button on the Left */}
         <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
           <Icon name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.headerButton} onPress={() => setIsBottomSheetVisible(true)}>
-          <Icon name="ellipsis-vertical" size={24} color="#000" />
-        </TouchableOpacity>
+
+        {/* Buttons on the Right */}
+        <View style={styles.headerRight}>
+          {isCurrentUser && (
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={() => navigation.navigate('ViewedHistory')}
+            >
+              <Icon name="time-outline" size={24} color="#000" />
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity style={styles.headerButton} onPress={() => setIsBottomSheetVisible(true)}>
+            <Icon name="ellipsis-vertical" size={24} color="#000" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <Image source={coverSource} style={styles.coverUrl} />
@@ -233,6 +246,11 @@ const styles = StyleSheet.create({
   },
   headerButton: {
     padding: 5,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   coverUrl: {
     width: '90%',
