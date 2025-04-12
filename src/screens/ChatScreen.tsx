@@ -16,6 +16,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootParamList } from '../type/navigationType';
 import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
+import CreateConversationModal from '../components/chat/CreateChatModal';
 
 const PAGE_SIZE = 10;
 
@@ -84,12 +85,19 @@ const ChatScreen = () => {
       </View>
     );
   };
+  const [isOpenCreateChatModal, setIsOpenCreateChatModal] = useState(false);
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.createNewText}>CREATE NEW CONVERSATION</Text>
+        <TouchableOpacity
+          onPress={() => setIsOpenCreateChatModal(true)}
+          activeOpacity={0.7}
+          style={{ flexDirection: 'row', alignItems: 'center' }}
+        >
+          <Text style={styles.createNewText}>CREATE NEW CONVERSATION</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Chat List */}
@@ -169,6 +177,15 @@ const ChatScreen = () => {
             <Text style={styles.emptyText}>Không có cuộc trò chuyện nào</Text>
           ) : null
         }
+      />
+      <CreateConversationModal
+        isOpen={isOpenCreateChatModal}
+        onClose={() => setIsOpenCreateChatModal(false)}
+        conversations={chatData}
+        setConversations={setChatData}
+        // onCreateConversation={(conversation) => {
+        //   setChatData((prev) => [conversation, ...prev]);
+        // }}
       />
     </View>
   );
