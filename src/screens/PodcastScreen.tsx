@@ -22,6 +22,7 @@ import Toast from 'react-native-toast-message';
 import { setupVideoViewTracking } from '../utils/video';
 import Animated, { runOnUI, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 import SuggestedPodcasts from '../components/podcast/SuggestedPodcasts';
+import UserService from '../services/userService';
 
 // type PodcastScreenRouteProp = RouteProp<RootParamList, 'Podcast'>;
 // type PodcastScreenNavigationProp = StackNavigationProp<RootParamList, 'Podcast'>;
@@ -44,6 +45,7 @@ interface PodcastScreenProps {
 
 const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
   const { podcast } = route.params;
+  const [userDetails, setUserDetails] = useState<any>(null);
   const [genres, setGenres] = useState<string[]>(podcast.genres?.map((genre) => genre.id) || []);
   // const [isPlaying, setIsPlaying] = useState(false);
   const [isBuffering, setIsBuffering] = useState(true);
@@ -66,6 +68,7 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
   const fetchPodcastDetails = async () => {
     try {
       console.log("Fetching podcast details...");
+      console.log("podcast: ", podcast);
       const response = await PodcastService.getPodcastById(podcast.id);
       setUpdatedPodcast(response);
       setGenres(response.genres?.map((genre) => genre.id) || []);
@@ -75,9 +78,20 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
     }
   };
 
+  const fetchUserDetails = async () => {
+    try {
+      const response = await UserService.getUserByUsername(podcast.user.username);
+      console.log(response);
+      setUserDetails(response); // Update user details state
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       if (isAuthenticated) {
+        fetchUserDetails();
         fetchPodcastDetails(); // Tải lại dữ liệu khi màn hình được focus
       }
     }, [isAuthenticated, podcast.id])
@@ -239,7 +253,7 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
     navigation.navigate('Profile', { username: podcast.user.username });
   };
 
-  if (!updatedPodcast) {
+  if (!updatedPodcast || !userDetails) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#000" />
@@ -316,7 +330,7 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
             <Image source={{ uri: podcast.user.avatarUrl }} style={styles.avatar} />
             <View>
               <Text style={styles.username} numberOfLines={2}>{podcast.user.fullname}</Text>
-              <Text style={styles.followers}>{CommonUtil.formatNumber(podcast.user.totalFollower)} followers</Text>
+              <Text style={styles.followers}>{CommonUtil.formatNumber(userDetails.totalFollower)} followers</Text>
             </View>
           </TouchableOpacity>
           {user?.id === podcast.user.id ? (

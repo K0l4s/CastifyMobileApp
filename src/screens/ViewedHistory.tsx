@@ -170,6 +170,7 @@ const ViewedHistory: React.FC = () => {
       
       <View style={styles.actionsContainer}>
         <View style={styles.searchContainer}>
+          <Icon name="search" size={20} color="#666" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search podcasts..."
@@ -185,6 +186,14 @@ const ViewedHistory: React.FC = () => {
           )}
         </View>
       </View>
+
+      {activities.length === 0 && (
+        <View>
+          <Text style={{ textAlign: 'center', marginTop: 20, color: '#ccc' }}>No activities found.</Text>
+          {loading && <ActivityIndicator size="small" color="#000" />}
+        </View>
+      )}
+      
       <FlatList
         data={activities}
         renderItem={renderDateGroup}
@@ -237,6 +246,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     position: 'relative',
+  },
+  searchIcon: {
+    marginRight: 8,
   },
   searchInput: {
     flex: 1,
