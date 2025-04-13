@@ -34,6 +34,7 @@ const ProfileScreen: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState('Video');
   const [myPodcasts, setMyPodcasts] = useState<Podcast[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userLoading, setUserLoading] = useState(true);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
   const sheetRef = useRef<BottomSheet>(null);
@@ -41,9 +42,14 @@ const ProfileScreen: React.FC = () => {
   const fullName = user?.fullname || `${user?.lastName || ''} ${user?.middleName || ''} ${user?.firstName || ''}`.trim();
   const avatarSource = user?.avatarUrl && user.avatarUrl !== '' ? { uri: user.avatarUrl } : defaultAvatar;
   const coverSource = user?.coverUrl && user.coverUrl !== '' ? { uri: user.coverUrl } : defaultCover;
+
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+
   useEffect(() => {
     if (!isCurrentUser) {
       fetchUserProfile();
+    } else {
+      setUserLoading(false);
     }
   }, [username]);
 
@@ -55,13 +61,21 @@ const ProfileScreen: React.FC = () => {
 
   const fetchUserProfile = async () => {
     try {
-      const response = await UserService.getUserByUsername(username);
-      console.log(response);
+      setUserLoading(true);
+      const response = await UserService.getUserByUsername(username, isAuthenticated);
       setUser(response);
     } catch (error) {
       console.error('Error fetching user profile:', error);
+    } finally {
+      setUserLoading(false); // Set loading state to false after fetching
     }
   };
+
+  useEffect(() => {
+    if (user) {
+      setIsFollowing(user.follow || false);
+    }
+  }, [user]);
 
   const fetchMyPodcasts = async () => {
     try {
@@ -119,18 +133,56 @@ const ProfileScreen: React.FC = () => {
 
   const handleFollow = async () => {
     try {
-      if (isFollowing) {
-        // Gọi API để unfollow
-      } else {
-        // Gọi API để follow
+      if (!isAuthenticated) {
+        Toast.show({
+          type: 'info',
+          text1: 'Please login to perform this action!',
+          position: 'bottom',
+          visibilityTime: 2000,
+        });
+        return;
       }
-      setIsFollowing(!isFollowing); // Cập nhật trạng thái
+  
+      // Call the followUser API
+      await UserService.followUser(username || user?.username || '');
+  
+      // Toggle the follow state and update the UI
+      setUser((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          follow: !prev.follow,
+          totalFollower: prev.follow ? prev.totalFollower - 1 : prev.totalFollower + 1, // Update follower count
+        };
+      });
+      setIsFollowing(!isFollowing);
+  
+      Toast.show({
+        type: 'success',
+        text1: isFollowing ? 'Unfollowed successfully!' : 'Followed successfully!',
+        position: 'bottom',
+        visibilityTime: 2000,
+      });
     } catch (error) {
       console.error('Error following/unfollowing user:', error);
-      Toast.show({ type: 'error', text1: 'Something went wrong!' });
+      Toast.show({
+        type: 'error',
+        text1: 'Something went wrong!',
+        position: 'bottom',
+        visibilityTime: 2000,
+      });
     }
   };
   
+  if (userLoading) {
+    // Show a loading indicator while user data is being fetched
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
   return (
     <GestureHandlerRootView style={styles.container}>
       <View style={styles.header}>
@@ -230,6 +282,11 @@ const ProfileScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   container: {
     flex: 1,
     alignItems: 'center',

@@ -67,8 +67,6 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
   
   const fetchPodcastDetails = async () => {
     try {
-      console.log("Fetching podcast details...");
-      console.log("podcast: ", podcast);
       const response = await PodcastService.getPodcastById(podcast.id);
       setUpdatedPodcast(response);
       setGenres(response.genres?.map((genre) => genre.id) || []);
@@ -80,8 +78,7 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
 
   const fetchUserDetails = async () => {
     try {
-      const response = await UserService.getUserByUsername(podcast.user.username);
-      console.log(response);
+      const response = await UserService.getUserByUsername(podcast.user.username, isAuthenticated);
       setUserDetails(response); // Update user details state
     } catch (error) {
       console.error('Error fetching user details:', error);
@@ -231,7 +228,7 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
     console.log('Report video');
   };
 
-  const handleFollow = () => {
+  const handleFollow = async () => {
     if (!isAuthenticated) {
       Toast.show({
         type: 'info',
@@ -242,7 +239,28 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
       return;
     }
 
-    console.log('Follow user');
+    try {
+      await UserService.followUser(podcast.user.username); // Call the followUser API
+      setUserDetails((prev: any) => ({
+        ...prev,
+        follow: !prev.follow, // Toggle the follow state
+        totalFollower: prev.follow ? prev.totalFollower - 1 : prev.totalFollower + 1, // Update follower count
+      }));
+      Toast.show({
+        type: 'success',
+        text1: userDetails.follow ? 'Unfollowed successfully!' : 'Followed successfully!',
+        position: 'bottom',
+        visibilityTime: 2000,
+      });
+    } catch (error) {
+      console.error('Error following/unfollowing user:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Something went wrong!',
+        position: 'bottom',
+        visibilityTime: 2000,
+      });
+    }
   };
 
   const handleEditVideo = () => {
@@ -339,7 +357,7 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={styles.followButton} onPress={handleFollow}>
-              <Text style={styles.followButtonText}>Follow</Text>
+              <Text style={styles.followButtonText}>{userDetails.follow ? 'Unfollow' : 'Follow'}</Text>
             </TouchableOpacity>
           )}
         </View>
