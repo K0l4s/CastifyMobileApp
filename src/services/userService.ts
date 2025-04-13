@@ -73,10 +73,36 @@ class UserService {
       return await axiosInstanceAuth.get(`/api/v1/user/list/friends?pageNumber=${pageNumber}&pageSize=${pageSize}`);
     }
     catch (error) {
-      console.error("Error fetching friends:", error);
+      console.error("Error fetching friends:", error);     
+    }
+  }
+  
+  static async getFollowingUsers(username: string, pageNumber: number = 0, pageSize: number = 10) {
+    try {
+      const response = await axiosInstanceAuth.get("/api/v1/user/list/following", {
+        params: {
+          username,
+          pageNumber,
+          pageSize
+        }
+      });
+      return response.data;
+    } catch (error) {
       throw error;
     }
   }
+
+  //Tinh nang dang phat trien
+  static async unfollowUser(userId: string) {
+    try {
+      const response = await axiosInstanceAuth.delete(`/api/v1/user/unfollow/${userId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  
 }
 
 export default UserService;

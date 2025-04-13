@@ -159,9 +159,15 @@ class PodcastService {
           size
         }
       });
-      response.data.content.forEach(podcast => {
-        podcast.videoUrl = `${BaseApi}/api/v1/podcast/video?path=${encodeURIComponent(podcast.videoUrl)}`;
-      });
+
+      if (response.data && response.data.content) {
+        response.data.content.forEach(podcast => {
+          if (podcast.videoUrl) {
+            podcast.videoUrl = `${BaseApi}/api/v1/podcast/video?path=${encodeURIComponent(podcast.videoUrl)}`;
+          }
+        });
+      }
+
       return response.data;
     } catch (error) {
       throw error;
@@ -193,6 +199,25 @@ class PodcastService {
       throw error;
     }
   };
+
+  static async getPodcastByUserID(userId: string, page: number = 0, size: number = 10) {
+    try {
+      const response = await axiosInstance.get<PodcastResponse>(`/api/v1/podcast/user/${userId}`, {
+        params: {
+          page,
+          size
+        }
+      });
+
+      response.data.content.forEach(podcast => {
+        podcast.videoUrl = `${BaseApi}/api/v1/podcast/video?path=${encodeURIComponent(podcast.videoUrl)}`;
+      });
+
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
   
 export default PodcastService;
