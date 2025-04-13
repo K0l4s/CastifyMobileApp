@@ -13,6 +13,8 @@ import { ConversationDetail, FullMemberInfor } from '../models/Conversation';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootParamList } from '../type/navigationType';
 import { shortUser } from '../models/User';
+import { setClick } from '../redux/reducer/messageSlice';
+import Icon from 'react-native-vector-icons/Feather'; // nếu bạn dùng vector-icons
 
 interface Message {
   id: string;
@@ -22,6 +24,7 @@ interface Message {
 }
 
 const ChatDetailScreen = () => {
+  
   const navigation = useNavigation<StackNavigationProp<RootParamList>>();
     const route = useRoute();
 
@@ -121,29 +124,43 @@ const ChatDetailScreen = () => {
     , [conversationId]);
   useEffect(() => {
     navigation.setOptions({
-      title: chatDetail.title,
-      headerTitleStyle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-      },
-      // headerLeft: () => (
-      //   <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 16 }}>
-      //     <Text style={{ fontSize: 20 }}>←</Text>
-      //   </TouchableOpacity>
-      // ),
+      headerTitle: () => (
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Image
+            source={{ uri: chatDetail.imageUrl || 'https://i.imgur.com/2vP3hDA.png' }}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              marginRight: 10,
+              borderWidth: 1,
+              borderColor: '#ccc',
+            }}
+          />
+          <Text style={{ fontSize: 17, fontWeight: '600', color: '#000' }}>
+            {chatDetail.title}
+          </Text>
+        </View>
+      ),
       headerRight: () => (
         <TouchableOpacity
           onPress={() => {
             navigation.navigate('ChatSettingScreen', {
               conversationId: conversationId,
-            })
-          }
-          }
-          style={{ marginRight: 16 }}>
-          <Text style={{ fontSize: 20 }}>
-            {/* setting icon */}
-            ⚙️
-          </Text>
+            });
+          }}
+          style={{
+            marginRight: 16,
+            padding: 6,
+            borderRadius: 8,
+            backgroundColor: '#f2f2f2',
+          }}
+          activeOpacity={0.7}
+        >
+          {/* Dùng icon nếu có vector-icons */}
+          <Icon name="settings" size={20} color="#333" />
+          {/* Hoặc dùng emoji nếu không cài icon */}
+          {/* <Text style={{ fontSize: 18 }}>⚙️</Text> */}
         </TouchableOpacity>
       ),
     });
@@ -160,6 +177,7 @@ const ChatDetailScreen = () => {
       const newMsg: Message = object;
       setMessages((prev) => [newMsg, ...prev]);
       conversationService.readMsg(conversationId);
+      
     }
   }, [object]);
   const [members, setMembers] = useState<FullMemberInfor[]>([]);
@@ -183,6 +201,15 @@ const ChatDetailScreen = () => {
       flag: conversationId ? true : false
     });
     const dispatch = useDispatch();
+    const click = useSelector((state: RootState) => state.message.isClick)
+    useEffect(() => {
+      // dispatch(setClick(!click))
+      // chỉ khởi tạo 1 lần rồi hủy
+      return () => {
+        dispatch(setClick(!click))
+      }
+    }
+      , []);
     useEffect(() => {
       if (readObject) {
         console.log("Read object")

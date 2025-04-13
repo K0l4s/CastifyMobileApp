@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
     Modal,
     View,
@@ -19,6 +19,7 @@ import { userCard } from "../../models/User";
 import UserService from "../../services/userService";
 import { conversationService } from "../../services/conversationService";
 import { Button } from "react-native-paper";
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 interface ConversationModalProps {
     isOpen: boolean;
@@ -143,59 +144,74 @@ const CreateConversationModal = ({
                 behavior={Platform.OS === "ios" ? "padding" : undefined}
                 style={styles.container}
             >
-                {/* nút thoát */}
-                <TouchableOpacity onPress={onClose} style={{ marginBottom: 16 }}>
-                    <Text style={{ fontSize: 18, color: "#007AFF" }}>Close</Text>
+                {/* Nút đóng */}
+                <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                    <Ionicons name="close" size={28} color="#333" />
                 </TouchableOpacity>
-                {isLoading && <ActivityIndicator size="large" color="#0000ff" />}
-                
+
                 <Text style={styles.title}>Create Conversation</Text>
 
-                <TextInput
-                    style={styles.input}
-                    placeholder="Enter conversation name"
-                    value={conversationName}
-                    onChangeText={setConversationName}
-                />
+                {/* Tên nhóm */}
+                <View style={styles.inputLabelWrapper}>
+                    <Text style={styles.inputLabel}>Conversation Name</Text>
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Enter conversation name"
+                        value={conversationName}
+                        onChangeText={setConversationName}
+                    />
+                </View>
 
-                <TextInput
-                    style={styles.input}
-                    placeholder="Search friends..."
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    onSubmitEditing={() => fetchFollowers(true)}
-                />
 
+
+                {/* Danh sách bạn */}
                 <View style={styles.listWrapper}>
                     <Text style={styles.subTitle}>Your Friends</Text>
+                    {/* Tìm bạn */}
+                    <View style={styles.inputLabelWrapper}>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Search friends..."
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                            onSubmitEditing={() => fetchFollowers(true)}
+                        />
+                    </View>
                     <FlatList
                         data={followers}
                         keyExtractor={(item) => item.id}
-                        renderItem={({ item }) => renderUserItem(item, handleSelectUser, "#d1fae5")}
+                        renderItem={({ item }) => renderUserItem(item, handleSelectUser, "#e0f7f4")}
                         onEndReached={() => hasMore && fetchFollowers()}
                         onEndReachedThreshold={0.5}
                         ListEmptyComponent={<Text style={styles.empty}>No users found.</Text>}
                     />
                 </View>
 
+                {/* Người được chọn */}
                 <View style={styles.listWrapper}>
                     <Text style={styles.subTitle}>Selected Users</Text>
                     <FlatList
                         data={selectedUsers}
                         keyExtractor={(item) => item.id}
-                        renderItem={({ item }) => renderUserItem(item, handleDeselectUser, "#fee2e2")}
+                        renderItem={({ item }) => renderUserItem(item, handleDeselectUser, "#fbe8e8")}
                         ListEmptyComponent={<Text style={styles.empty}>No users selected.</Text>}
                     />
                 </View>
 
                 <View style={styles.buttonContainer}>
                     <Button
+                        mode="contained"
                         onPress={handleCreateConversation}
                         disabled={selectedUsers.length === 0 || !conversationName.trim()}
+                        contentStyle={styles.createButtonContent}
+                        labelStyle={styles.createButtonLabel}
+                        style={styles.createButton}
                     >
                         Create
                     </Button>
                 </View>
+
+                {isLoading && <ActivityIndicator size="large" color="#007AFF" />}
             </KeyboardAvoidingView>
         </Modal>
     );
@@ -209,22 +225,37 @@ const styles = StyleSheet.create({
         padding: 16,
         backgroundColor: "#fff",
     },
+    closeButton: {
+        alignSelf: "flex-end",
+        padding: 4,
+        marginBottom: 10,
+    },
     title: {
         fontSize: 22,
         fontWeight: "bold",
         marginBottom: 16,
+        textAlign: "center",
+        color: "#333",
+    },
+    inputLabelWrapper: {
+        marginBottom: 12,
+    },
+    inputLabel: {
+        fontSize: 14,
+        fontWeight: "600",
+        marginBottom: 4,
+        color: "#555",
     },
     input: {
         borderWidth: 1,
         borderColor: "#ccc",
-        borderRadius: 8,
+        borderRadius: 10,
         paddingHorizontal: 12,
         paddingVertical: 10,
-        marginBottom: 12,
     },
     listWrapper: {
         flex: 1,
-        marginBottom: 16,
+        marginTop: 8,
     },
     subTitle: {
         fontSize: 16,
@@ -235,13 +266,19 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         padding: 10,
-        borderRadius: 8,
-        marginBottom: 8,
+        borderRadius: 10,
+        marginBottom: 10,
+        backgroundColor: "#f0f0f0",
+        shadowColor: "#000",
+        shadowOpacity: 0.1,
+        shadowOffset: { width: 0, height: 1 },
+        shadowRadius: 4,
+        elevation: 2,
     },
     avatar: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+        width: 42,
+        height: 42,
+        borderRadius: 21,
         marginRight: 12,
     },
     userInfo: {
@@ -250,6 +287,7 @@ const styles = StyleSheet.create({
     fullname: {
         fontSize: 14,
         fontWeight: "bold",
+        color: "#222",
     },
     username: {
         fontSize: 13,
@@ -259,8 +297,21 @@ const styles = StyleSheet.create({
         color: "#888",
         fontSize: 13,
         fontStyle: "italic",
+        marginTop: 10,
+        textAlign: "center",
     },
     buttonContainer: {
         paddingTop: 10,
+    },
+    createButton: {
+        borderRadius: 12,
+        elevation: 3,
+    },
+    createButtonContent: {
+        paddingVertical: 10,
+    },
+    createButtonLabel: {
+        fontSize: 16,
+        fontWeight: "bold",
     },
 });

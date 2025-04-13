@@ -14,9 +14,11 @@ import DateUtil from '../utils/dateUtil';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootParamList } from '../type/navigationType';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import CreateConversationModal from '../components/chat/CreateChatModal';
+import { resetNewConversation, setClick } from '../redux/reducer/messageSlice';
+import useStomp from '../hooks/useStomp';
 
 const PAGE_SIZE = 10;
 
@@ -27,17 +29,14 @@ const ChatScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const userId = useSelector((state: RootState) => state.auth.user?.id);
-
+  const [isOpenCreateChatModal, setIsOpenCreateChatModal] = useState(false);
+  const dispatch = useDispatch();
   const navigation = useNavigation<StackNavigationProp<RootParamList, 'ChatScreen'>>();
 
   const fetchData = async (currentPage: number, isRefresh = false) => {
     if (loading || !userId) return;
 
-    if (isRefresh) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
+    isRefresh ? setRefreshing(true) : setLoading(true);
 
     try {
       const response = await conversationService.getByUserId(currentPage, PAGE_SIZE);
@@ -85,20 +84,47 @@ const ChatScreen = () => {
       </View>
     );
   };
-  const [isOpenCreateChatModal, setIsOpenCreateChatModal] = useState(false);
+  const data: shortConversation = useStomp(
+    {
+      subscribeUrl: `/user/${userId}/queue/msg`,
+      trigger: [userId],
+    }
+  )
+  useEffect(() => {
+    if (data && data.id) {
+      setChatData((prev) => {
+        const existingConversation = prev.find((item) => item.id === data.id);
+        if (existingConversation) {
+          return prev.map((item) =>
+            item.id === data.id ? { ...item, ...data } : item
+          );
+        } else {
+          return [data, ...prev];
+        }
+      });
+      
+      dispatch(setClick(!isClick));
+    }
+  }
+  , [data]);
+  const isClick = useSelector((state:RootState)=> state.message.isClick)
 
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => setIsOpenCreateChatModal(true)}
-          activeOpacity={0.7}
-          style={{ flexDirection: 'row', alignItems: 'center' }}
-        >
-          <Text style={styles.createNewText}>CREATE NEW CONVERSATION</Text>
-        </TouchableOpacity>
-      </View>
+      {
+        userId && (
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={() => setIsOpenCreateChatModal(true)}
+              activeOpacity={0.8}
+              style={styles.createButton}
+            >
+              <Text style={styles.createButtonText}>+ Tạo cuộc trò chuyện</Text>
+            </TouchableOpacity>
+          </View>
+        )
+      }
 
       {/* Chat List */}
       <FlatList
@@ -109,6 +135,7 @@ const ChatScreen = () => {
         refreshing={refreshing}
         onRefresh={handleRefresh}
         ListFooterComponent={renderFooter}
+        contentContainerStyle={{ padding: 12 }}
         renderItem={({ item }) => {
           const isUnread = item.lastMessage &&
             !item.lastMessage.read &&
@@ -116,44 +143,37 @@ const ChatScreen = () => {
 
           return (
             <TouchableOpacity
-              style={styles.chatItem}
+              style={[styles.chatItem, isUnread && styles.unreadItem]}
               onPress={() => {
                 navigation.navigate('ChatDetailScreen', {
                   conversationId: item.id,
-                })
+                });
                 chatData.forEach((chat) => {
                   if (chat.id === item.id && chat.lastMessage) {
                     chat.lastMessage.read = true;
                   }
                 });
                 setChatData([...chatData]);
+                
               }}
-              activeOpacity={0.7}
+              activeOpacity={0.8}
             >
-              {/* Avatar with unread dot */}
-              <View style={{ position: 'relative' }}>
+              <View style={styles.avatarContainer}>
                 <Image
                   source={{
-                    uri:
-                      item.imageUrl ||
-                      'https://png.pngtree.com/element_our/png_detail/20180904/group-avatar-icon-design-vector-png_75950.jpg',
+                    uri: item.imageUrl || 'https://png.pngtree.com/element_our/png_detail/20180904/group-avatar-icon-design-vector-png_75950.jpg',
                   }}
-                  style={[
-                    styles.avatar,
-                    isUnread && { borderWidth: 2, borderColor: '#f00' },
-                  ]}
+                  style={styles.avatar}
                 />
                 {isUnread && <View style={styles.unreadDot} />}
               </View>
 
-              {/* Chat details */}
-              <View style={styles.chatDetails}>
-                <Text style={styles.groupName}>{item.title}</Text>
+              <View style={styles.chatInfo}>
+                <Text style={styles.groupName} numberOfLines={1}>
+                  {item.title}
+                </Text>
                 <Text
-                  style={[
-                    styles.lastMessage,
-                    isUnread && styles.unreadText
-                  ]}
+                  style={[styles.lastMessage, isUnread && styles.unreadText]}
                   numberOfLines={1}
                 >
                   {item.lastMessage?.sender?.fullname
@@ -162,7 +182,6 @@ const ChatScreen = () => {
                 </Text>
               </View>
 
-              {/* Timestamp */}
               <Text style={styles.time}>
                 {item.lastMessage?.timestamp &&
                   DateUtil.formatDateToTimeAgo(
@@ -178,62 +197,102 @@ const ChatScreen = () => {
           ) : null
         }
       />
+
       <CreateConversationModal
         isOpen={isOpenCreateChatModal}
         onClose={() => setIsOpenCreateChatModal(false)}
         conversations={chatData}
         setConversations={setChatData}
-        // onCreateConversation={(conversation) => {
-        //   setChatData((prev) => [conversation, ...prev]);
-        // }}
       />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'white' },
+  container: { flex: 1, backgroundColor: '#f7f8fa' },
   header: {
     padding: 16,
     alignItems: 'center',
+    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    borderBottomColor: '#eee',
   },
-  createNewText: { fontWeight: 'bold', color: 'black' },
+  createButton: {
+    backgroundColor: '#007bff',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  createButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
   chatItem: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    marginBottom: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
   },
-  avatar: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+  unreadItem: {
+    backgroundColor: '#ffeaea',
+  },
+  avatarContainer: {
+    position: 'relative',
     marginRight: 12,
   },
-  chatDetails: { flex: 1 },
-  groupName: { fontWeight: 'bold', color: 'black' },
-  lastMessage: { color: 'gray' },
-  unreadText: { fontWeight: 'bold', color: '#f00' },
-  time: { color: 'gray', fontSize: 12 },
-  footer: { paddingVertical: 10, alignItems: 'center' },
-  emptyText: {
-    textAlign: 'center',
-    padding: 20,
-    color: '#888',
+  avatar: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
   },
   unreadDot: {
     position: 'absolute',
-    top: 0,
-    right: 5,
-    width: 20,
-    height: 20,
-    backgroundColor: 'red',
-    borderRadius: 15,
+    top: -2,
+    right: -2,
+    width: 14,
+    height: 14,
+    backgroundColor: '#f00',
+    borderRadius: 7,
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: '#fff',
+  },
+  chatInfo: {
+    flex: 1,
+  },
+  groupName: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 2,
+  },
+  lastMessage: {
+    color: '#777',
+    fontSize: 14,
+  },
+  unreadText: {
+    fontWeight: '600',
+    color: '#000',
+  },
+  time: {
+    fontSize: 12,
+    color: '#999',
+    marginLeft: 8,
+  },
+  footer: {
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  emptyText: {
+    textAlign: 'center',
+    padding: 20,
+    color: '#aaa',
   },
 });
 

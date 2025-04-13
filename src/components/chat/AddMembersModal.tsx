@@ -16,12 +16,13 @@ import { FullMemberInfor } from '../../models/Conversation';
 import { userCard } from '../../models/User';
 import UserService from '../../services/userService';
 import { conversationService } from '../../services/conversationService';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 interface AddMembersModalProps {
     isOpen: boolean;
     onClose: () => void;
     onAdded?: () => void;
-    groupId: string
+    groupId: string;
     members: FullMemberInfor[];
     setMembers: React.Dispatch<React.SetStateAction<FullMemberInfor[]>>;
 }
@@ -35,7 +36,6 @@ const AddMembersModal: React.FC<AddMembersModalProps> = ({
     groupId
 }) => {
     const route = useRoute<any>();
-    // const groupId = route.params?.id;
     const { conversationId } = route.params as { conversationId: string };
 
     const [followers, setFollowers] = useState<userCard[]>([]);
@@ -52,9 +52,7 @@ const AddMembersModal: React.FC<AddMembersModalProps> = ({
                 pageSize,
                 searchQuery.trim()
             );
-            let newData:userCard[] = response.data.data;
-
-            // Lọc trùng theo ID
+            let newData: userCard[] = response.data.data;
             const existingIds = new Set((reset ? [] : followers).map(u => u.id));
             newData = newData.filter(u => !existingIds.has(u.id));
 
@@ -94,10 +92,6 @@ const AddMembersModal: React.FC<AddMembersModalProps> = ({
     };
 
     const handleAddMembers = async () => {
-        console.log('Adding members:', selectedUsers.map(u => u.id));
-        console.log('Group ID:', conversationId);
-        // if (!groupId) return;
-
         try {
             const request = await conversationService.addMembers(
                 selectedUsers.map(u => u.id),
@@ -115,37 +109,56 @@ const AddMembersModal: React.FC<AddMembersModalProps> = ({
     const isAlreadyMember = (userId: string) => {
         return members.some(member => member.members.id === userId);
     };
-    
+
     return (
         <Modal visible={isOpen} animationType="slide" onRequestClose={onClose} transparent>
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 style={{
                     flex: 1,
-                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    backgroundColor: 'rgba(0,0,0,0.6)',
                     justifyContent: 'center',
-                    padding: 16
+                    padding: 20,
                 }}
             >
-                <TouchableOpacity onPress={onClose} style={{ position: 'absolute', top: 16, right: 16 }}>
-                    <Text style={{ fontSize: 24, color: 'white' }}>✖️</Text>
+                <TouchableOpacity onPress={onClose} style={{
+                    position: 'absolute',
+                    top: 20,
+                    right: 20,
+                    backgroundColor: 'white',
+                    borderRadius: 20,
+                    padding: 6,
+                    elevation: 4,
+                }}>
+                    <Ionicons name="close" size={24} color="black" />
                 </TouchableOpacity>
 
-                <View style={{ backgroundColor: 'white', borderRadius: 12, padding: 16, maxHeight: '90%' }}>
-                    <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12 }}>
+                <View style={{
+                    backgroundColor: 'white',
+                    borderRadius: 20,
+                    padding: 20,
+                    maxHeight: '90%',
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 8,
+                    elevation: 10
+                }}>
+                    <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 16 }}>
                         Add Members to Group
                     </Text>
 
                     <View style={{
                         flexDirection: 'row',
                         alignItems: 'center',
-                        borderColor: '#ccc',
+                        borderColor: '#ddd',
                         borderWidth: 1,
-                        borderRadius: 8,
-                        paddingHorizontal: 8,
-                        marginBottom: 12
+                        borderRadius: 12,
+                        paddingHorizontal: 10,
+                        backgroundColor: '#f9f9f9',
+                        marginBottom: 16,
                     }}>
-                        <Text style={{ fontSize: 18, marginRight: 8 }}>🔍</Text>
+                        <Ionicons name="search" size={20} color="#888" style={{ marginRight: 8 }} />
                         <TextInput
                             placeholder="Search friends..."
                             value={searchQuery}
@@ -170,10 +183,17 @@ const AddMembersModal: React.FC<AddMembersModalProps> = ({
                                 style={{
                                     flexDirection: 'row',
                                     alignItems: 'center',
-                                    backgroundColor: '#fdecea',
+                                    backgroundColor: '#e3f2fd',
+                                    borderColor: '#90caf9',
+                                    borderWidth: 1,
                                     marginRight: 8,
-                                    padding: 6,
-                                    borderRadius: 8
+                                    paddingHorizontal: 10,
+                                    paddingVertical: 4,
+                                    borderRadius: 20,
+                                    shadowColor: '#90caf9',
+                                    shadowOffset: { width: 1, height: 1 },
+                                    shadowOpacity: 0.2,
+                                    shadowRadius: 4,
                                 }}
                             >
                                 <Image
@@ -205,10 +225,14 @@ const AddMembersModal: React.FC<AddMembersModalProps> = ({
                                         flexDirection: 'row',
                                         alignItems: 'center',
                                         justifyContent: 'space-between',
-                                        paddingVertical: 8,
+                                        paddingVertical: 10,
+                                        paddingHorizontal: 6,
                                         borderBottomColor: '#eee',
                                         borderBottomWidth: 1,
-                                        opacity: alreadyInGroup ? 0.4 : 1
+                                        backgroundColor: '#fff',
+                                        borderRadius: 8,
+                                        marginBottom: 4,
+                                        opacity: alreadyInGroup ? 0.5 : 1,
                                     }}
                                 >
                                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -221,7 +245,7 @@ const AddMembersModal: React.FC<AddMembersModalProps> = ({
                                             <Text style={{ fontSize: 12, color: 'gray' }}>@{item.username}</Text>
                                         </View>
                                     </View>
-                                    {alreadyInGroup && <Text style={{ fontSize: 12 }}>👥</Text>}
+                                    {alreadyInGroup && <Ionicons name="people-outline" size={18} color="#aaa" />}
                                 </TouchableOpacity>
                             );
                         }}
@@ -232,18 +256,23 @@ const AddMembersModal: React.FC<AddMembersModalProps> = ({
                         }
                     />
 
-                    <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 16 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 20 }}>
                         <TouchableOpacity
                             onPress={handleAddMembers}
                             disabled={selectedUsers.length === 0}
                             style={{
-                                backgroundColor: selectedUsers.length > 0 ? '#4caf50' : '#aaa',
-                                paddingVertical: 10,
-                                paddingHorizontal: 20,
-                                borderRadius: 8
+                                backgroundColor: selectedUsers.length > 0 ? '#4caf50' : '#ccc',
+                                paddingVertical: 12,
+                                paddingHorizontal: 24,
+                                borderRadius: 30,
+                                shadowColor: '#4caf50',
+                                shadowOffset: { width: 0, height: 3 },
+                                shadowOpacity: 0.3,
+                                shadowRadius: 4,
+                                elevation: 4,
                             }}
                         >
-                            <Text style={{ color: 'white', fontWeight: 'bold' }}>Add Members</Text>
+                            <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>Add Members</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

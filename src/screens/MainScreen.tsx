@@ -17,6 +17,8 @@ import { NotificationService } from '../services/NotificationService';
 import { setTotalUnRead } from '../redux/reducer/notificationSlice';
 import useStomp from '../hooks/useStomp';
 import { NotiModel } from '../models/Notification';
+import { shortConversation } from '../models/Conversation';
+import { conversationService } from '../services/conversationService';
 
 enableScreens();
 const Tab = createMaterialTopTabNavigator();
@@ -47,6 +49,29 @@ useEffect(() => {
         dispatch(setTotalUnRead(totalUnRead + 1));
     }
 }, [stomp]);
+  const userId = useSelector((state: RootState) => state.auth.user?.id);
+  const [isRead, setIsRead] = useState<boolean>(false);
+  const isClick = useSelector((state:RootState)=> state.message.isClick)
+
+  useEffect(() => {
+    const fetchIsRead = async () => {
+      try {
+        const response = await conversationService.hasUnreadMsg();
+        console.log("Hello " + response.data);
+        setIsRead(response.data)
+        console.log("isRead: ", isRead);
+      } catch (error) {
+        console.error("Error fetching unread messages:", error);
+      }
+    };
+    fetchIsRead(); 
+  }, [isClick]);
+const data: shortConversation = useStomp(
+  {
+    subscribeUrl: `/user/${userId}/queue/msg`,
+    trigger: [userId],
+  }
+)
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={{ flex: 1 }}>
@@ -94,7 +119,28 @@ useEffect(() => {
               const icon = (
                 <Icon name={iconName? iconName : "gift"} size={20} color={focused ? '#0c0461' : 'gray'} />
               );
-
+              if (route.name === 'Chat' && isRead) {
+                return (
+                  <View style={{ position: 'relative' }}>
+                    {icon}
+                    <View
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        right: 0,
+                        backgroundColor: 'red',
+                        borderRadius: 999,
+                        minWidth: 10,
+                        height: 10,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        // paddingHorizontal: 5,
+                      }}
+                    >
+                    </View>
+                  </View>
+                );
+              }
               if (route.name === 'Notification' && totalUnRead > 0) {
                 return (
                   <View style={{ position: 'relative' }}>
