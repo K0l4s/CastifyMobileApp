@@ -277,6 +277,7 @@ import { NotificationService } from '../services/NotificationService';
 import { RootState } from '../redux/store';
 import useStomp from '../hooks/useStomp';
 import PodcastService from '../services/podcastService';
+import { setTotalUnRead } from '../redux/reducer/notificationSlice';
 
 const NotificationScreen: React.FC = () => {
   const dispatch = useDispatch();
@@ -361,7 +362,11 @@ const NotificationScreen: React.FC = () => {
       setNewMessage(stomp);
     }
   }, [stomp]);
-
+  const totalUnRead = useSelector((state: RootState) => state.Notification.totalUnRead);
+  const readNoti = async (id: string) => {
+    await NotificationService.readNoti(id);
+    dispatch(setTotalUnRead(totalUnRead - 1));
+  };
   useEffect(() => {
     if (message) {
       setNotifications(prev => {
@@ -404,6 +409,17 @@ const NotificationScreen: React.FC = () => {
                 isUnread && styles.unreadNotification,
               ]}
               onPress={() => {
+
+                setNotifications(prev => {
+                  return prev.map(item => {
+                    if (item.id === noti.id) {
+                      item.read = true;
+                    }
+                    return item;
+                  });
+                }); // ← đóng ngoặc đúng!
+                
+                readNoti(noti.id);
                 noti.read = true;
                 const notiUrl = noti.targetUrl.split('/');
                 if (notiUrl[1] === "profile") {

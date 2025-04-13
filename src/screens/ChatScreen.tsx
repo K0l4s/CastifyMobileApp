@@ -19,6 +19,8 @@ import { RootState } from '../redux/store';
 import CreateConversationModal from '../components/chat/CreateChatModal';
 import { resetNewConversation, setClick } from '../redux/reducer/messageSlice';
 import useStomp from '../hooks/useStomp';
+import { NotificationService } from '../services/NotificationService';
+import { setTotalUnRead } from '../redux/reducer/notificationSlice';
 
 const PAGE_SIZE = 10;
 
@@ -102,13 +104,13 @@ const ChatScreen = () => {
           return [data, ...prev];
         }
       });
-      
+
       dispatch(setClick(!isClick));
     }
   }
-  , [data]);
-  const isClick = useSelector((state:RootState)=> state.message.isClick)
-
+    , [data]);
+  const isClick = useSelector((state: RootState) => state.message.isClick)
+  
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -154,7 +156,7 @@ const ChatScreen = () => {
                   }
                 });
                 setChatData([...chatData]);
-                
+
               }}
               activeOpacity={0.8}
             >

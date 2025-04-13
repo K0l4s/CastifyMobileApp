@@ -52,7 +52,7 @@ useEffect(() => {
   const userId = useSelector((state: RootState) => state.auth.user?.id);
   const [isRead, setIsRead] = useState<boolean>(false);
   const isClick = useSelector((state:RootState)=> state.message.isClick)
-
+  
   useEffect(() => {
     const fetchIsRead = async () => {
       try {
@@ -143,7 +143,9 @@ const data: shortConversation = useStomp(
               }
               if (route.name === 'Notification' && totalUnRead > 0) {
                 return (
-                  <View style={{ position: 'relative' }}>
+                  <View style={{ position: 'relative' }}
+                  
+                  >
                     {icon}
                     <View
                       style={{
