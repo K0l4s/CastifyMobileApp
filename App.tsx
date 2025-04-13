@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { LinkingOptions, NavigationContainer, useNavigation } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -22,6 +21,7 @@ import { BottomSheetProvider } from './src/context/BottomSheetContext';
 import NotificationScreen from './src/screens/NotificationScreen';
 import CreateScreen from './src/screens/CreateScreen';
 import ChatSettingScreen from './src/screens/ChatSettingScreen';
+import AllFollowingUsersScreen from './src/screens/AllFollowingUsersScreen';
 const Stack = createStackNavigator<RootParamList>();
 import useStomp from './src/hooks/useStomp';
 import SearchModal from './src/components/modals/SearchModal';
@@ -79,6 +79,7 @@ const App = () => {
               <Stack.Screen name="ChatSettingScreen" component={ChatSettingScreen} options={{ headerShown: true }} />
               <Stack.Screen name="Create" component={CreateScreen} />
               <Stack.Screen name="Search" component={SearchModal} options={{ headerShown: false }} />
+              <Stack.Screen name="AllFollowingUsers" component={AllFollowingUsersScreen} />
             </Stack.Navigator>
             <Toast />
           </NavigationContainer>

@@ -5,20 +5,17 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootParamList } from '../../type/navigationType';
 
-interface UserItemProps {
+export interface UserItemProps {
   user: userCard;
+  followButtonText?: string;
+  onFollowPress?: (userId: string) => void;
 }
 
-const UserItem: React.FC<UserItemProps> = ({ user }) => {
+const UserItem: React.FC<UserItemProps> = ({ user, followButtonText = 'Follow', onFollowPress }) => {
   const navigation = useNavigation<StackNavigationProp<RootParamList>>();
 
   const handleOpenProfile = (username: string) => {
     navigation.navigate('Profile', { username });
-  };
-
-  const handleFollowUser = (userId: string) => {
-    console.log(`Follow user with ID: ${userId}`);
-    // Thực hiện logic follow/unfollow tại đây
   };
 
   return (
@@ -31,8 +28,11 @@ const UserItem: React.FC<UserItemProps> = ({ user }) => {
         <Text style={styles.username}>{user.username}</Text>
         <Text style={styles.stats}>{user.totalFollower || 0} followers {" "} {user.totalPost || 0} Podcasts</Text>
       </View>
-      <TouchableOpacity style={styles.followButton} onPress={() => handleFollowUser(user.id)}>
-        <Text style={styles.followText}>Follow</Text>
+      <TouchableOpacity 
+        style={styles.followButton} 
+        onPress={() => onFollowPress?.(user.id)}
+      >
+        <Text style={styles.followText}>{followButtonText}</Text>
       </TouchableOpacity>
     </TouchableOpacity>
   );
