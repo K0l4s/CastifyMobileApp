@@ -14,6 +14,7 @@ import { NotiModel } from '../models/Notification';
 import { NotificationService } from '../services/NotificationService';
 import { RootState } from '../redux/store';
 import useStomp from '../hooks/useStomp';
+import PodcastService from '../services/podcastService';
 
 const NotificationScreen: React.FC = () => {
   const dispatch = useDispatch();
@@ -138,7 +139,28 @@ const NotificationScreen: React.FC = () => {
             ]}
             onPress={() => {
               noti.read = true;
-              navigation.navigate(noti.targetUrl); // cần đảm bảo targetUrl là tên route
+              console.log(noti)
+              const notiUrl = noti.targetUrl.split('/');
+              console.log('notiUrl', notiUrl);
+              if(notiUrl[1]==="profile")
+              {
+                navigation.navigate('Profile', { username: notiUrl[2] });
+              }
+              else if(notiUrl[1].includes("watch"))
+              {
+                const id = notiUrl[1].split('=')[1];
+                console.log("id", id);
+                const response = PodcastService.getPodcastById(id);
+                response.then((res) => {
+                  const podcast = res;
+                  console.log("podcast", podcast);
+                  navigation.navigate('Podcast', { podcast });
+                });
+              }
+              // if (notiUrl.includes('/profile/')) {
+              //   navigation.navigate('Profile', { username:id });
+              // }
+              // navigation.navigate(noti.targetUrl); // cần đảm bảo targetUrl là tên route
             }}
           >
             <View style={{ flex: 1 }}>

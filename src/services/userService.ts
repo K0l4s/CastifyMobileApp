@@ -23,7 +23,7 @@ class UserService {
     formData.append('avatar', avatar);
     return await axiosInstanceFile.put(`/api/v1/user/avatar`, formData);
   }
-  
+
   static async searchUsers(keyword: string, pageNumber = 0, pageSize = 10) {
     try {
       const response = await axiosInstance.get(`/api/v1/search/user?pageNumber=${pageNumber}&pageSize=${pageSize}&keyword=${keyword}`);
@@ -53,6 +53,18 @@ class UserService {
       return response.data;
     } catch (error) {
       console.error("Error fetching user profile:", error);
+      throw error;
+    }
+  }
+
+  static async getFriends(pageNumber: number, pageSize: number, keyword?: string) {
+    try {
+      if (keyword)
+        return await axiosInstanceAuth.get(`/api/v1/user/list/friends?keyword=${keyword}&pageNumber=${pageNumber}&pageSize=${pageSize}`);
+      return await axiosInstanceAuth.get(`/api/v1/user/list/friends?pageNumber=${pageNumber}&pageSize=${pageSize}`);
+    }
+    catch (error) {
+      console.error("Error fetching friends:", error);
       throw error;
     }
   }
