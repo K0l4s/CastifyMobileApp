@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   View,
@@ -17,6 +17,8 @@ import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootParamList } from "../../type/navigationType";
 import AuthenticateService from "../../services/authenticateService";
+import { locationService } from "../../services/locationService";
+import { Picker } from "@react-native-picker/picker";
 
 interface RegisterModalProps {
   isOpen: boolean;
@@ -30,6 +32,12 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [provincesList, setProvincesList] = useState<any[]>([]);
+  const [districtsList, setDistrictsList] = useState<any[]>([]);
+  const [wardsList, setWardsList] = useState<any[]>([]);
+  const [province, setProvince] = useState('');
+  const [district, setDistrict] = useState('');
+  const [ward, setWard] = useState('');
   const [formData, setFormData] = useState({
     email: "",
     repeatEmail: "",
@@ -41,12 +49,56 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
     phone: "",
     birthday: new Date(),
     addressElements: "",
-    username: ""
+    username: "",
+    wardId: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showRetypePassword, setShowRetypePassword] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false); 
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      const res = await locationService.getProvinces();
+      setProvincesList(res.data);
+    };
+    fetchProvinces();
+  }, []);
 
+  useEffect(() => {
+    if (province) {
+      console.log("a");
+      const fetchDistricts = async () => {
+        const res = await locationService.getDistricts(province);
+        setDistrictsList(res.data);
+        if (!res.data.find((d: any) => d.id === district)) {
+          setDistrict('');
+          setWard('');
+          setWardsList([]);
+        }
+      };
+      fetchDistricts();
+    } else {
+      setDistrictsList([]);
+      setDistrict('');
+      setWard('');
+      setWardsList([]);
+    }
+  }, [province]);
+
+  useEffect(() => {
+    if (district) {
+      const fetchWards = async () => {
+        const res = await locationService.getWards(district);
+        setWardsList(res.data);
+        if (!res.data.find((w: any) => w.id === ward)) {
+          setWard('');
+        }
+      };
+      fetchWards();
+    } else {
+      setWardsList([]);
+      setWard('');
+    }
+  }, [district]);
   const handleInputChange = (name: string, value: string | Date) => {
     setFormData((prev) => ({
       ...prev,
@@ -76,7 +128,7 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
       setErrorMessage("Passwords do not match.");
       return;
     }
-    setStep(2);
+    setStep(step + 1);
   };
 
   const handleRegister = async () => {
@@ -91,8 +143,8 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
       const localDateTime = new Date(formData.birthday.getTime() - formData.birthday.getTimezoneOffset() * 60000)
         .toISOString()
         .split("T")[0] + "T00:00:00";
-      
-      await AuthenticateService.register({ ...formData, birthday: localDateTime, isMobile: true }, dispatch, navigation);
+
+      await AuthenticateService.register({ ...formData, birthday: localDateTime, isMobile: true, wardId: ward }, dispatch, navigation);
       onClose();
       // navigation.navigate("Verify", { email: formData.email });
     } catch (error) {
@@ -123,7 +175,7 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
                 <Text style={styles.buttonText}>Next</Text>
               </TouchableOpacity>
             </>
-          ) : (
+          ) : step === 2 ? (
             <>
               <Text style={styles.title}>Create an Account - Step 2</Text>
               <TextInput style={styles.input} placeholder="First Name" placeholderTextColor="#aaa" value={formData.firstName} onChangeText={(text) => handleInputChange("firstName", text)} />
@@ -148,8 +200,42 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
               )}
               <TextInput style={styles.input} placeholder="Phone" placeholderTextColor="#aaa" value={formData.phone} onChangeText={(text) => handleInputChange("phone", text)} />
               <TextInput style={styles.input} placeholder="Nickname" placeholderTextColor="#aaa" value={formData.username} onChangeText={(text) => handleInputChange("username", text)} />
+              <TouchableOpacity style={styles.button} onPress={handleNextStep}>
+                <Text style={styles.buttonText}>Next</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
               <TextInput style={styles.input} placeholder="Address" placeholderTextColor="#aaa" value={formData.addressElements} onChangeText={(text) => handleInputChange("addressElements", text)} />
+              <Text style={styles.pickerLabel}>Province</Text>
+              <View style={styles.pickerWrapper}>
+                <Picker onValueChange={setProvince}>
+                  <Picker.Item label="Select Province" value="" />
+                  {provincesList.map(p => (
+                    <Picker.Item key={p.id} label={p.name} value={p.id} />
+                  ))}
+                </Picker>
+              </View>
 
+              <Text style={styles.pickerLabel}>District</Text>
+              <View style={styles.pickerWrapper}>
+                <Picker onValueChange={setDistrict} enabled={!!province}>
+                  <Picker.Item label="Select District" value="" />
+                  {districtsList.map(d => (
+                    <Picker.Item key={d.id} label={d.name} value={d.id} />
+                  ))}
+                </Picker>
+              </View>
+
+              <Text style={styles.pickerLabel}>Ward</Text>
+              <View style={styles.pickerWrapper}>
+                <Picker onValueChange={setWard} enabled={!!district}>
+                  <Picker.Item label="Select Ward" value="" />
+                  {wardsList.map(w => (
+                    <Picker.Item key={w.id} label={w.name} value={w.id} />
+                  ))}
+                </Picker>
+              </View>
               {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
               <TouchableOpacity style={styles.button} onPress={handleRegister}>
                 {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Register</Text>}
@@ -170,7 +256,18 @@ const styles = StyleSheet.create({
   input: { width: "100%", color: 'black', height: 50, borderWidth: 1, borderColor: "#ccc", borderRadius: 5, paddingHorizontal: 10, marginBottom: 15, justifyContent: "center" },
   button: { width: "100%", backgroundColor: "#4f46e5", paddingVertical: 12, borderRadius: 5, alignItems: "center" },
   buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  errorText: { color: "red", fontSize: 14, marginBottom: 10 }
+  errorText: { color: "red", fontSize: 14, marginBottom: 10 }, pickerLabel: {
+    width: '100%',
+    fontWeight: 'bold',
+    marginTop: 10,
+  },
+  pickerWrapper: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    width: '100%',
+    marginBottom: 10,
+  },
 });
 
 export default RegisterModal;

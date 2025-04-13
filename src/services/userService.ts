@@ -18,12 +18,16 @@ class UserService {
     return await axiosInstanceAuth.put(`/api/v1/user`, updatedUser);
   }
 
+  static async followUser(targetUsername: string) {
+    return await axiosInstanceAuth.put(`/api/v1/user/follow?username=${targetUsername}`)
+  }
+
   static async changeAvatar(avatar: File) {
     const formData = new FormData();
     formData.append('avatar', avatar);
     return await axiosInstanceFile.put(`/api/v1/user/avatar`, formData);
   }
-  
+
   static async searchUsers(keyword: string, pageNumber = 0, pageSize = 10) {
     try {
       const response = await axiosInstance.get(`/api/v1/search/user?pageNumber=${pageNumber}&pageSize=${pageSize}&keyword=${keyword}`);
@@ -47,9 +51,14 @@ class UserService {
     }
   }
 
-  static async getUserByUsername(username: string) {
+  static async getUserByUsername(username: string, isAuthenticated: boolean) {
     try {
-      const response = await axiosInstance.get(`/api/v1/user?username=${username}`);
+      let response;
+      if (!isAuthenticated) {
+        response = await axiosInstance.get(`/api/v1/user?username=${username}`);
+      } else {
+        response = await axiosInstanceAuth.get(`/api/v1/user?username=${username}`);
+      }
       return response.data;
     } catch (error) {
       console.error("Error fetching user profile:", error);
@@ -57,6 +66,17 @@ class UserService {
     }
   }
 
+  static async getFriends(pageNumber: number, pageSize: number, keyword?: string) {
+    try {
+      if (keyword)
+        return await axiosInstanceAuth.get(`/api/v1/user/list/friends?keyword=${keyword}&pageNumber=${pageNumber}&pageSize=${pageSize}`);
+      return await axiosInstanceAuth.get(`/api/v1/user/list/friends?pageNumber=${pageNumber}&pageSize=${pageSize}`);
+    }
+    catch (error) {
+      console.error("Error fetching friends:", error);     
+    }
+  }
+  
   static async getFollowingUsers(username: string, pageNumber: number = 0, pageSize: number = 10) {
     try {
       const response = await axiosInstanceAuth.get("/api/v1/user/list/following", {
@@ -81,6 +101,8 @@ class UserService {
       throw error;
     }
   }
+
+  
 }
 
 export default UserService;

@@ -15,4 +15,5 @@ export type RootParamList = {
   Notification: undefined;
   Search: undefined;
   AllFollowingUsers: undefined;
+  ViewedHistory: undefined;
 }

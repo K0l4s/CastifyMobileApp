@@ -8,21 +8,24 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootParamList } from '../../type/navigationType';
 import { useBottomSheet } from '../../context/BottomSheetContext';
-import Toast from 'react-native-toast-message';
 
 interface PodcastItemProps {
   podcast: Podcast;
+  menuOptions?: { label: string; onPress: () => void }[]; // Allow dynamic menu options
 }
 
-const PodcastItem: React.FC<PodcastItemProps> = ({ podcast }) => {
+const PodcastItem: React.FC<PodcastItemProps> = ({ podcast, menuOptions }) => {
   const navigation = useNavigation<StackNavigationProp<RootParamList>>();
   const { showBottomSheet } = useBottomSheet();
-
-  const bottomSheetOptions = [
-    { label: 'Add to playlist', onPress: () => Toast.show({ type: 'info', text1: "Coming soon!"}) },
-    { label: 'Share', onPress: () => Toast.show({ type: 'info', text1: "Coming soon!"}) },
-    { label: 'Report', onPress: () => Toast.show({ type: 'info', text1: "Coming soon!"}) },
+  const username = podcast.user.username;
+  const defaultOptions = [
+    { label: 'Add to playlist', onPress: () => console.log('Add to playlist') },
+    { label: 'Share', onPress: () => console.log('Share') },
+    { label: 'Report', onPress: () => console.log('Report') },
   ];
+
+  const options = [...(menuOptions || []), ...defaultOptions]; // Use custom options if provided
+
   return (
     <View style={styles.itemContainer}>
       <TouchableOpacity onPress={() => navigation.navigate('Podcast', { podcast })}>
@@ -32,15 +35,17 @@ const PodcastItem: React.FC<PodcastItemProps> = ({ podcast }) => {
         </View>
       </TouchableOpacity>
       <View style={styles.infoContainer}>
-        <Image source={podcast.user.avatarUrl ? { uri: podcast.user.avatarUrl } : defaultAvatar} style={styles.avatar} />
+        <TouchableOpacity onPress={() => navigation.navigate('Profile', { username })}>
+          <Image source={podcast.user.avatarUrl ? { uri: podcast.user.avatarUrl } : defaultAvatar} style={styles.avatar} />
+        </TouchableOpacity>
         <View style={styles.textContainer}>
-          <Text style={styles.title} numberOfLines={2} ellipsizeMode='tail'>{podcast.title}</Text>
+          <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">{podcast.title}</Text>
           <Text style={styles.subtitle} numberOfLines={1}>{podcast.user.fullname}</Text>
           <Text style={styles.subtitle}>
             {podcast.views} views · {DateUtil.formatDateToTimeAgo(new Date(podcast.createdDay))}
           </Text>
         </View>
-        <TouchableOpacity onPress={() => showBottomSheet(bottomSheetOptions)}>
+        <TouchableOpacity onPress={() => showBottomSheet(options)}>
           <Icon name="ellipsis-vertical" size={20} color="#000" />
         </TouchableOpacity>
       </View>

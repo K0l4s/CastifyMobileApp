@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -11,14 +11,17 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import DatePicker from 'react-native-date-picker';
-import {useSelector, useDispatch} from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {RootState} from '../../redux/store';
-import {launchImageLibrary} from 'react-native-image-picker';
+import { RootState } from '../../redux/store';
+import { launchImageLibrary } from 'react-native-image-picker';
 import UserService from '../../services/userService';
-import {updateAvatar, updateInformation} from '../../redux/reducer/authSlice';
-import {TextInput} from 'react-native-paper';
+import { updateAvatar, updateInformation } from '../../redux/reducer/authSlice';
+import { TextInput } from 'react-native-paper';
 import Toast from 'react-native-toast-message';
+import { locationService } from '../../services/locationService';
+import { Picker } from '@react-native-picker/picker';
+import { updateUser } from '../../models/User';
 
 interface EditProfileModalProps {
   isVisible: boolean;
@@ -31,26 +34,85 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 }) => {
   const user = useSelector((state: RootState) => state.auth.user);
   const dispatch = useDispatch();
-
+  console.log(user?.location)
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [middleName, setMiddleName] = useState(user?.middleName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
   const [birthday, setBirthday] = useState(
-    user?.birthday ? new Date(user.birthday) : new Date(),
+    user?.birthday ? new Date(user.birthday) : new Date()
   );
   const [address, setAddress] = useState(user?.address || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [avatar, setAvatar] = useState(user?.avatarUrl || '');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [province, setProvince] = useState(user?.provinces || '');
-  const [district, setDistrict] = useState(user?.districts || '');
-  const [ward, setWard] = useState(user?.wards ?? '');
-  const [hamlet, setHamlet] = useState(user?.hamlet ?? '');
+
+  const [province, setProvince] = useState(user?.location?.district?.city?.id || '');
+  const [district, setDistrict] = useState(user?.location?.district?.id || '');
+  const [ward, setWard] = useState(user?.location?.id || '');
+  const [hamlet, setHamlet] = useState(user?.address || '');
+  const [provincesList, setProvincesList] = useState<any[]>([]);
+  const [districtsList, setDistrictsList] = useState<any[]>([]);
+  const [wardsList, setWardsList] = useState<any[]>([]);
 
   const [loading, setLoading] = useState(false);
   const [openDatePicker, setOpenDatePicker] = useState(false);
+  useEffect(() => {
+    if (user?.location?.district?.city?.id) {
+      setProvince(user.location.district.city.id);
+    }
+    if (user?.location?.district?.id) {
+      setDistrict(user.location.district.id);
+    }
+    if (user?.location?.id) {
+      setWard(user.location.id);
+    }
+  }, [user]);
 
-  // reset form when modal is closed
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      const res = await locationService.getProvinces();
+      setProvincesList(res.data);
+    };
+    fetchProvinces();
+  }, []);
+
+  useEffect(() => {
+    if (province) {
+      console.log("a");
+      const fetchDistricts = async () => {
+        const res = await locationService.getDistricts(province);
+        setDistrictsList(res.data);
+        if (!res.data.find((d: any) => d.id === district)) {
+          setDistrict('');
+          setWard('');
+          setWardsList([]);
+        }
+      };
+      fetchDistricts();
+    } else {
+      setDistrictsList([]);
+      setDistrict('');
+      setWard('');
+      setWardsList([]);
+    }
+  }, [province]);
+
+  useEffect(() => {
+    if (district) {
+      const fetchWards = async () => {
+        const res = await locationService.getWards(district);
+        setWardsList(res.data);
+        if (!res.data.find((w: any) => w.id === ward)) {
+          setWard('');
+        }
+      };
+      fetchWards();
+    } else {
+      setWardsList([]);
+      setWard('');
+    }
+  }, [district]);
+
   const resetForm = () => {
     setFirstName(user?.firstName || '');
     setMiddleName(user?.middleName || '');
@@ -60,51 +122,48 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     setPhone(user?.phone || '');
     setAvatar(user?.avatarUrl || '');
     setAvatarFile(null);
-    setProvince(user?.provinces || '');
-    setDistrict(user?.districts || '');
-    setWard(user?.wards ?? '');
-    setHamlet(user?.hamlet ?? '');
+    setProvince(user?.location?.district?.city?.id || '');
+    setDistrict(user?.location?.district?.id || '');
+    setWard(user?.location?.id || '');
+    setHamlet(user?.address || '');
   };
+
 
   const handleSave = async () => {
     setLoading(true);
     try {
-      // Update avatar if a new one is selected
       if (avatarFile) {
         const avatarResponse = await UserService.changeAvatar(avatarFile);
         dispatch(updateAvatar(avatarResponse.data.avatarUrl));
       }
-      
-      const birthdayLocalDateTime = birthday.toISOString().replace('Z', '');
 
-      // Prepare updated user information
-      const updatedUser = {
+      const birthdayLocalDateTime = birthday.toISOString().replace('Z', '');
+      const wardId = ward;
+      console.log(user)
+      // console.log(ward)
+      const updatedUser:updateUser = {
         firstName,
         middleName,
         lastName,
         birthday: birthdayLocalDateTime,
-        addressElement: address,
-        phone,
-        avatarUrl: avatar,
-        coverUrl: user?.coverUrl || '',
-        province: province,
-        district: district,
+        wardId: wardId,
         ward: ward,
-        hamlet: hamlet,
+        district: district,
+        provinces: province,
+        phone: phone,
+        addressElements: address,
       };
 
-      // Update user information
       await UserService.updateUser(updatedUser);
       dispatch(updateInformation(updatedUser));
 
       Toast.show({
         type: 'success',
-        text1: 'Profile updated successfully!',
+        text1: 'Cập nhật thông tin thành công!',
         position: 'bottom',
         visibilityTime: 2000,
       });
 
-      // Close the modal
       onClose();
     } catch (error) {
       console.error('Failed to update user:', error);
@@ -114,7 +173,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   };
 
   const handleSelectImage = () => {
-    launchImageLibrary({mediaType: 'photo'}, response => {
+    launchImageLibrary({ mediaType: 'photo' }, response => {
       if (response.assets && response.assets.length > 0) {
         const selectedImage = response.assets[0];
         setAvatar(selectedImage.uri || '');
@@ -127,18 +186,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
     });
   };
 
-  const handleCancel = () => {
-    resetForm();
-    onClose();
-  };
-
   const handleBack = () => {
     resetForm();
     onClose();
   };
 
   return (
-    <Modal visible={isVisible} animationType="slide" transparent={false} onRequestClose={onClose}>
+    <Modal visible={isVisible} animationType="slide" onRequestClose={onClose}>
       <View style={styles.modalContainer}>
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBack} disabled={loading}>
@@ -149,39 +203,20 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         <ScrollView contentContainerStyle={styles.modalContent}>
           <View style={styles.avatarContainer}>
             <TouchableOpacity onPress={handleSelectImage}>
-              <Image source={{uri: avatar}} style={styles.avatar} />
+              <Image source={{ uri: avatar }} style={styles.avatar} />
               <View style={styles.cameraIconContainer}>
                 <Icon name="camera" size={24} color="#0e0e69" />
               </View>
             </TouchableOpacity>
           </View>
-          <TextInput
-            style={styles.input}
-            label="First Name"
-            value={firstName}
-            onChangeText={setFirstName}
-          />
-          <TextInput
-            style={styles.input}
-            label="Middle Name"
-            value={middleName}
-            onChangeText={setMiddleName}
-          />
-          <TextInput
-            style={styles.input}
-            label="Last Name"
-            value={lastName}
-            onChangeText={setLastName}
-          />
-          <Pressable
-            onPress={() => setOpenDatePicker(true)}
-            style={{width: '100%'}}>
+          <TextInput style={styles.input} label="First Name" value={firstName} onChangeText={setFirstName} />
+          <TextInput style={styles.input} label="Middle Name" value={middleName} onChangeText={setMiddleName} />
+          <TextInput style={styles.input} label="Last Name" value={lastName} onChangeText={setLastName} />
+          <Pressable onPress={() => setOpenDatePicker(true)} style={{ width: '100%' }}>
             <TextInput
               style={styles.input}
               label="Birthday"
-              value={
-                birthday ? birthday.toDateString() : 'Select your birthday'
-              }
+              value={birthday.toDateString()}
               editable={false}
             />
           </Pressable>
@@ -189,54 +224,53 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             modal
             mode="date"
             open={openDatePicker}
-            date={birthday || new Date()}
+            date={birthday}
             onConfirm={date => {
               setOpenDatePicker(false);
               setBirthday(date);
             }}
             onCancel={() => setOpenDatePicker(false)}
           />
-          <TextInput
-            style={styles.input}
-            label="Address"
-            value={address}
-            onChangeText={setAddress}
-          />
-          <TextInput
-            style={styles.input}
-            label="Phone"
-            value={phone}
-            onChangeText={setPhone}
-          />
-          <TextInput
-            style={styles.input}
-            label="Province"
-            value={province}
-            onChangeText={setProvince}
-          />
-          <TextInput
-            style={styles.input}
-            label="District"
-            value={district}
-            onChangeText={setDistrict}
-          />
-          <TextInput
-            style={styles.input}
-            label="Ward"
-            value={ward}
-            onChangeText={setWard}
-          />
-          <TextInput
-            style={styles.input}
-            label="Hamlet"
-            value={hamlet}
-            onChangeText={setHamlet}
-          />
+          <TextInput style={styles.input} label="Address" value={address} onChangeText={setAddress} />
+          <TextInput style={styles.input} label="Phone" value={phone} onChangeText={setPhone} />
+
+          <Text style={styles.pickerLabel}>Province</Text>
+          <View style={styles.pickerWrapper}>
+            <Picker selectedValue={province} onValueChange={setProvince}>
+              <Picker.Item label="Select Province" value="" />
+              {provincesList.map(p => (
+                <Picker.Item key={p.id} label={p.name} value={p.id} />
+              ))}
+            </Picker>
+          </View>
+
+          <Text style={styles.pickerLabel}>District</Text>
+          <View style={styles.pickerWrapper}>
+            <Picker selectedValue={user?.location.district.id} onValueChange={setDistrict} enabled={!!province}>
+              <Picker.Item label="Select District" value="" />
+              {districtsList.map(d => (
+                <Picker.Item key={d.id} label={d.name} value={d.id} />
+              ))}
+            </Picker>
+          </View>
+
+          <Text style={styles.pickerLabel}>Ward</Text>
+          <View style={styles.pickerWrapper}>
+            <Picker selectedValue={ward} onValueChange={setWard} enabled={!!district}>
+              <Picker.Item label="Select Ward" value="" />
+              {wardsList.map(w => (
+                <Picker.Item key={w.id} label={w.name} value={w.id} />
+              ))}
+            </Picker>
+          </View>
+
+          <TextInput style={styles.input} label="Hamlet" value={hamlet} onChangeText={setHamlet} />
+
           <View style={styles.buttonContainer}>
             <TouchableOpacity style={styles.buttonSave} onPress={handleSave} disabled={loading}>
               {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Save</Text>}
             </TouchableOpacity>
-            <TouchableOpacity style={styles.buttonCancel} onPress={handleCancel} disabled={loading}>
+            <TouchableOpacity style={styles.buttonCancel} onPress={handleBack} disabled={loading}>
               <Text style={styles.buttonCancelText}>Cancel</Text>
             </TouchableOpacity>
           </View>
@@ -250,7 +284,6 @@ const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
     backgroundColor: 'white',
-    zIndex: 100,
   },
   header: {
     flexDirection: 'row',
@@ -288,6 +321,18 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 10,
   },
+  pickerLabel: {
+    width: '100%',
+    fontWeight: 'bold',
+    marginTop: 10,
+  },
+  pickerWrapper: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    width: '100%',
+    marginBottom: 10,
+  },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -304,7 +349,6 @@ const styles = StyleSheet.create({
   buttonCancel: {
     flex: 1,
     padding: 10,
-    color: 'red',
     borderWidth: 1,
     backgroundColor: 'white',
     borderColor: 'red',
