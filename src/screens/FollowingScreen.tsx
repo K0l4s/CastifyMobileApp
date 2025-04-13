@@ -189,7 +189,6 @@ const FollowingScreen = () => {
               keyExtractor={item => item.id}
               horizontal
               showsHorizontalScrollIndicator={false}
-              style={styles.usersListContent}
               contentContainerStyle={styles.usersListContainer}
               onEndReached={loadMoreUsers}
               onEndReachedThreshold={0.5}
@@ -207,17 +206,22 @@ const FollowingScreen = () => {
                 </TouchableOpacity>
               }
               ListFooterComponent={
-                <TouchableOpacity
-                  style={[styles.userItem, styles.seeAllButton]}
-                  onPress={navigateToAllUsers}
-                >
-                  <View style={styles.avatarContainer}>
-                    <Icon name="chevron-right" size={30} color="#666" />
+                loadingMoreUsers ? (
+                  <View style={styles.loaderFooter}>
+                    <ActivityIndicator size="small" color="#0000ff" />
                   </View>
-                  <Text style={styles.username}>Xem tất cả</Text>
-                </TouchableOpacity>
+                ) : null
               }
             />
+            <TouchableOpacity
+              style={[styles.userItem, styles.seeAllButton]}
+              onPress={navigateToAllUsers}
+            >
+              <View style={styles.avatarContainer}>
+                <Icon name="chevron-right" size={30} color="#666" />
+              </View>
+              <Text style={styles.username}>Xem tất cả</Text>
+            </TouchableOpacity>
           </View>
 
           {loading ? (
@@ -285,9 +289,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
-  },
-  usersListContent: {
-    flexGrow: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   usersListContainer: {
     paddingHorizontal: 8,
@@ -300,6 +303,7 @@ const styles = StyleSheet.create({
   },
   seeAllButton: {
     opacity: 0.7,
+    marginRight: 8,
   },
   avatarContainer: {
     padding: 2,
