@@ -18,6 +18,10 @@ class UserService {
     return await axiosInstanceAuth.put(`/api/v1/user`, updatedUser);
   }
 
+  static async followUser(targetUsername: string) {
+    return await axiosInstanceAuth.put(`/api/v1/user/follow?username=${targetUsername}`)
+  }
+
   static async changeAvatar(avatar: File) {
     const formData = new FormData();
     formData.append('avatar', avatar);
@@ -47,9 +51,14 @@ class UserService {
     }
   }
 
-  static async getUserByUsername(username: string) {
+  static async getUserByUsername(username: string, isAuthenticated: boolean) {
     try {
-      const response = await axiosInstance.get(`/api/v1/user?username=${username}`);
+      let response;
+      if (!isAuthenticated) {
+        response = await axiosInstance.get(`/api/v1/user?username=${username}`);
+      } else {
+        response = await axiosInstanceAuth.get(`/api/v1/user?username=${username}`);
+      }
       return response.data;
     } catch (error) {
       console.error("Error fetching user profile:", error);

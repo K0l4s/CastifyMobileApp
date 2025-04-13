@@ -25,6 +25,7 @@ import ChatSettingScreen from './src/screens/ChatSettingScreen';
 const Stack = createStackNavigator<RootParamList>();
 import useStomp from './src/hooks/useStomp';
 import SearchModal from './src/components/modals/SearchModal';
+import ViewedHistory from './src/screens/ViewedHistory';
 // Cấu hình Deep Link
 const linking: LinkingOptions<RootParamList> = {
   prefixes: ["castify://", "https://castify.vercel.app"], // Các URL scheme
@@ -79,6 +80,7 @@ const App = () => {
               <Stack.Screen name="ChatSettingScreen" component={ChatSettingScreen} options={{ headerShown: true }} />
               <Stack.Screen name="Create" component={CreateScreen} />
               <Stack.Screen name="Search" component={SearchModal} options={{ headerShown: false }} />
+              <Stack.Screen name="ViewedHistory" component={ViewedHistory} />
             </Stack.Navigator>
             <Toast />
           </NavigationContainer>
