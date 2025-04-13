@@ -17,7 +17,7 @@ interface PodcastItemProps {
 const PodcastItem: React.FC<PodcastItemProps> = ({ podcast, menuOptions }) => {
   const navigation = useNavigation<StackNavigationProp<RootParamList>>();
   const { showBottomSheet } = useBottomSheet();
-
+  const username = podcast.user.username;
   const defaultOptions = [
     { label: 'Add to playlist', onPress: () => console.log('Add to playlist') },
     { label: 'Share', onPress: () => console.log('Share') },
@@ -35,7 +35,9 @@ const PodcastItem: React.FC<PodcastItemProps> = ({ podcast, menuOptions }) => {
         </View>
       </TouchableOpacity>
       <View style={styles.infoContainer}>
-        <Image source={podcast.user.avatarUrl ? { uri: podcast.user.avatarUrl } : defaultAvatar} style={styles.avatar} />
+        <TouchableOpacity onPress={() => navigation.navigate('Profile', { username })}>
+          <Image source={podcast.user.avatarUrl ? { uri: podcast.user.avatarUrl } : defaultAvatar} style={styles.avatar} />
+        </TouchableOpacity>
         <View style={styles.textContainer}>
           <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">{podcast.title}</Text>
           <Text style={styles.subtitle} numberOfLines={1}>{podcast.user.fullname}</Text>
