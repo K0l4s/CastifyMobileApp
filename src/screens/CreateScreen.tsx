@@ -100,7 +100,6 @@ const CreateScreen = () => {
     }
 
     setUploading(true);
-    // navigation.goBack();
 
     const formData = new FormData();
     formData.append("title", title);
@@ -120,11 +119,15 @@ const CreateScreen = () => {
 
     try {
       await PodcastService.uploadPodcast(formData);
-      Toast.show({type: 'info', text1: 'Podcast uploaded successfully!' });
+      Toast.show({
+        type: 'success',
+        text1: 'Upload successful',
+        text2: 'Your podcast has been uploaded successfully'
+      });
       navigation.goBack();
     } catch (error) {
       console.error("Error uploading podcast:", error);
-      Alert.alert("Error", "Failed to upload podcast.");
+      Alert.alert("Error", "Failed to upload podcast. Please try again.");
     } finally {
       setUploading(false);
     }
@@ -142,77 +145,99 @@ const CreateScreen = () => {
     <GestureHandlerRootView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Upload your podcast</Text>
-        <TouchableOpacity style={styles.closeButton} onPress={() => navigation.goBack()}>
-          <Icon name="close" size={30} color="#000" />
+        <TouchableOpacity 
+          style={styles.closeButton} 
+          onPress={() => navigation.goBack()}
+          disabled={uploading}
+        >
+          <Icon name="close" size={30} color={uploading ? "#ccc" : "#000"} />
         </TouchableOpacity>
       </View>
-      <FlatList
-        data={[{ key: 'form' }]}
-        renderItem={() => (
-          <View style={styles.contentContainer}>
-            <TextInput
-              style={styles.input}
-              label={'Title*'}
-              value={title}
-              onChangeText={setTitle}
-              maxLength={100}
-            />
-            <Text style={styles.charCount}>{title.length}/100</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              label={'Content* (Description)'}
-              value={content}
-              onChangeText={setContent}
-              multiline
-              maxLength={5000}
-            />
-            <Text style={styles.charCount}>{content.length}/5000</Text>
-            <View style={styles.buttonContainer}>
-              <Button title="Select Video" onPress={pickVideo} />
-            </View>
-            {videoPreview && (
-              <View style={styles.videoContainer}>
-                <Text style={styles.fileText}>Video selected</Text>
-                <Video
-                  source={{ uri: videoPreview }}
-                  style={styles.video}
-                  controls={true}
-                  resizeMode="cover"
+      <View style={styles.mainContainer}>
+        <FlatList
+          data={[{ key: 'form' }]}
+          renderItem={() => (
+            <View style={styles.contentContainer}>
+              <TextInput
+                style={styles.input}
+                label={'Title*'}
+                value={title}
+                onChangeText={setTitle}
+                maxLength={100}
+              />
+              <Text style={styles.charCount}>{title.length}/100</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                label={'Content* (Description)'}
+                value={content}
+                onChangeText={setContent}
+                multiline
+                maxLength={5000}
+              />
+              <Text style={styles.charCount}>{content.length}/5000</Text>
+              <View style={styles.buttonContainer}>
+                <Button 
+                  title="Select Video" 
+                  onPress={pickVideo} 
                 />
               </View>
-            )}
-            <View style={styles.buttonContainer}>
-              <Button title="Select Thumbnail" onPress={pickImage} />
-            </View>
-            {thumbnailPreview && <Image source={{ uri: thumbnailPreview }} style={styles.thumbnail} />}
-            <View style={styles.buttonContainer}>
-              <Button title="Select Genres" onPress={openGenrePicker} />
-            </View>
-            <FlatList
-              data={selectedGenres}
-              renderItem={({ item }) => (
-                <View style={styles.genreItem}>
-                  <Text style={styles.genreText}>{item.name}</Text>
+              {videoPreview && (
+                <View style={styles.videoContainer}>
+                  <Text style={styles.fileText}>Video selected</Text>
+                  <Video
+                    source={{ uri: videoPreview }}
+                    style={styles.video}
+                    controls={true}
+                    resizeMode="cover"
+                  />
                 </View>
               )}
-              keyExtractor={(item) => item.id.toString()}
-              numColumns={3}
-              contentContainerStyle={styles.selectedGenresContainer}
-            />
-            {uploading ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#0000ff" />
-              </View>  
-            ) : (
-                <View style={styles.buttonContainer}>
-                  <Button title="Upload" onPress={handleSubmit} color={'#1f3ad1'} />
-                </View>
-            )}
+              <View style={styles.buttonContainer}>
+                <Button 
+                  title="Select Thumbnail" 
+                  onPress={pickImage} 
+                />
+              </View>
+              {thumbnailPreview && <Image source={{ uri: thumbnailPreview }} style={styles.thumbnail} />}
+              <View style={styles.buttonContainer}>
+                <Button 
+                  title="Select Genres" 
+                  onPress={openGenrePicker} 
+                />
+              </View>
+              <FlatList
+                data={selectedGenres}
+                renderItem={({ item }) => (
+                  <View style={styles.genreItem}>
+                    <Text style={styles.genreText}>{item.name}</Text>
+                  </View>
+                )}
+                keyExtractor={(item) => item.id.toString()}
+                numColumns={3}
+                contentContainerStyle={styles.selectedGenresContainer}
+              />
+              <View style={styles.buttonContainer}>
+                <Button 
+                  title="Upload" 
+                  onPress={handleSubmit} 
+                  color={'#1f3ad1'} 
+                />
+              </View>
+            </View>
+          )}
+          keyExtractor={(item) => item.key}
+          contentContainerStyle={styles.scrollContainer}
+        />
+        
+        {uploading && (
+          <View style={styles.overlay}>
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#fff" />
+              <Text style={styles.uploadingText}>Uploading podcast...</Text>
+            </View>
           </View>
         )}
-        keyExtractor={(item) => item.key}
-        contentContainerStyle={styles.scrollContainer}
-      />
+      </View>
     </GestureHandlerRootView>
   );
 };
@@ -300,6 +325,27 @@ const styles = StyleSheet.create({
   },
   genreText: {
     color: 'white',
+  },
+  uploadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '500',
+  },
+  mainContainer: {
+    flex: 1,
+    position: 'relative',
+  },
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
   },
 });
 
