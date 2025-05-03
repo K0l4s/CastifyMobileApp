@@ -25,16 +25,20 @@ const SplashScreen = () => {
         // If valid, dispatch login action
         if (valid) {
           dispatch(login());
-          const data = await UserService.getUserByToken();
-          dispatch(setUser(data));
+          let data = await UserService.getUserByToken();
+
+          const fullData = await UserService.getUserByUsername(data.username, true);
+          dispatch(setUser(fullData));
         } else {
           // If expired, call refresh token api
           const response = await AuthenticateService.refreshToken();
 
           if (response) {
             dispatch(login());
-            const data = await UserService.getUserByToken();
-            dispatch(setUser(data));
+            let data = await UserService.getUserByToken();
+
+            const fullData = await UserService.getUserByUsername(data.username, true);
+            dispatch(setUser(fullData));
           }
         }
       } catch (error) {

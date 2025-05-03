@@ -5,7 +5,7 @@ import CommentService from '../../services/commentService';
 import { Comment } from '../../models/CommentModel';
 import { FlatList } from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { noCommentImg } from '../../utils/fileUtil';
+import { defaultAvatar, noCommentImg } from '../../utils/fileUtil';
 import DateUtil from '../../utils/dateUtil';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
@@ -338,7 +338,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ sheetRef, podcastId, to
                     item.id === parentComment?.id && styles.parentCommentContainer,
                   ]}
                 >
-                  <Image source={{ uri: item.user.avatarUrl }} style={styles.avatar} />
+                  <Image source={item.user.avatarUrl ? { uri: item.user.avatarUrl } : defaultAvatar} style={styles.avatar} />
                   <View style={styles.commentContent}>
                     <View style={styles.commentHeader}>
                       <Text style={styles.username}>{item.user.fullname}</Text>
@@ -374,7 +374,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ sheetRef, podcastId, to
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <View style={styles.commentContainer}>
-                  <Image source={{ uri: item.user.avatarUrl }} style={styles.avatar} />
+                  <Image source={item.user.avatarUrl ? { uri: item.user.avatarUrl } : defaultAvatar} style={styles.avatar} />
                   <View style={styles.commentContent}>
                     <View style={styles.commentHeader}>
                       <Text style={styles.username}>{item.user.fullname}</Text>

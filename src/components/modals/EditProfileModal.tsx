@@ -34,7 +34,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 }) => {
   const user = useSelector((state: RootState) => state.auth.user);
   const dispatch = useDispatch();
-  console.log(user?.location)
+  // console.log(user?.location)
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [middleName, setMiddleName] = useState(user?.middleName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
@@ -78,7 +78,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
   useEffect(() => {
     if (province) {
-      console.log("a");
+      // console.log("a");
       const fetchDistricts = async () => {
         const res = await locationService.getDistricts(province);
         setDistrictsList(res.data);
@@ -212,25 +212,25 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
           <TextInput style={styles.input} label="First Name" value={firstName} onChangeText={setFirstName} />
           <TextInput style={styles.input} label="Middle Name" value={middleName} onChangeText={setMiddleName} />
           <TextInput style={styles.input} label="Last Name" value={lastName} onChangeText={setLastName} />
-          <Pressable onPress={() => setOpenDatePicker(true)} style={{ width: '100%' }}>
+          {/* <Pressable onPress={() => setOpenDatePicker(true)} style={{ width: '100%' }}>
             <TextInput
               style={styles.input}
               label="Birthday"
               value={birthday.toDateString()}
               editable={false}
             />
-          </Pressable>
-          <DatePicker
+          </Pressable> */}
+          {/* <DatePicker
             modal
             mode="date"
             open={openDatePicker}
-            date={birthday}
+            date={birthday || new Date()}
             onConfirm={date => {
               setOpenDatePicker(false);
               setBirthday(date);
             }}
             onCancel={() => setOpenDatePicker(false)}
-          />
+          />  */}
           <TextInput style={styles.input} label="Address" value={address} onChangeText={setAddress} />
           <TextInput style={styles.input} label="Phone" value={phone} onChangeText={setPhone} />
 

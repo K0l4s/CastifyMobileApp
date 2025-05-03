@@ -11,6 +11,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootParamList } from '../type/navigationType';
 import { AxiosError } from 'axios';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { defaultAvatar } from '../utils/fileUtil';
 
 interface FollowingUser {
   id: string;
@@ -142,7 +143,7 @@ const FollowingScreen = () => {
     >
       <View style={[styles.avatarContainer, selectedUser?.id === item.id && styles.selectedAvatarContainer]}>
         <Image 
-          source={{ uri: item.avatarUrl || 'https://via.placeholder.com/150' }} 
+          source={item.avatarUrl ? { uri: item.avatarUrl } : defaultAvatar}
           style={styles.userAvatar} 
         />
       </View>

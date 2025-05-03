@@ -69,23 +69,6 @@ const AllFollowingUsersScreen = () => {
     }
   };
 
-  const handleUnfollow = async (userId: string) => {
-    try {
-      await UserService.unfollowUser(userId);
-      setFollowingUsers(prev => prev.filter(user => user.id !== userId));
-      Toast.show({
-        type: 'success',
-        text1: 'Unfollowed successfully'
-      });
-    } catch (error) {
-      console.error('Error unfollowing user:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Failed to unfollow user'
-      });
-    }
-  };
-
   const handleRefresh = () => {
     setRefreshing(true);
     setPage(0);
@@ -108,8 +91,6 @@ const AllFollowingUsersScreen = () => {
   const renderUserItem = ({ item }: { item: userCard }) => (
     <UserItem 
       user={item} 
-      onFollowPress={() => handleUnfollow(item.id)}
-      followButtonText="Unfollow"
     />
   );
 
