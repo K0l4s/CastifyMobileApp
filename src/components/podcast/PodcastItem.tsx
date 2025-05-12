@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootParamList } from '../../type/navigationType';
 import { useBottomSheet } from '../../context/BottomSheetContext';
+import Toast from 'react-native-toast-message';
 
 interface PodcastItemProps {
   podcast: Podcast;
@@ -19,9 +20,30 @@ const PodcastItem: React.FC<PodcastItemProps> = ({ podcast, menuOptions }) => {
   const { showBottomSheet } = useBottomSheet();
   const username = podcast.user.username;
   const defaultOptions = [
-    { label: 'Add to playlist', onPress: () => console.log('Add to playlist') },
-    { label: 'Share', onPress: () => console.log('Share') },
-    { label: 'Report', onPress: () => console.log('Report') },
+    { label: 'Add to playlist', onPress: () => 
+      Toast.show({
+        type: 'info',
+        text1: 'Playlist coming soon!!',
+        position: 'top',
+        visibilityTime: 2000,
+      })
+    },
+    { label: 'Share', onPress: () => 
+      Toast.show({
+        type: 'info',
+        text1: 'Share coming soon!!',
+        position: 'top',
+        visibilityTime: 2000,
+      })
+    },
+    { label: 'Report', onPress: () => 
+      Toast.show({
+        type: 'success',
+        text1: 'Reported podcast to admin!',
+        position: 'top',
+        visibilityTime: 2000,
+      }) 
+    },
   ];
 
   const options = [...(menuOptions || []), ...defaultOptions]; // Use custom options if provided

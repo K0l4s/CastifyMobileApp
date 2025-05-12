@@ -56,7 +56,8 @@ export interface updateUser {
     firstName: string;
     middleName: string;
     lastName: string;
-    birthday: string;
+    avatarUrl?: string;
+    // birthday: string;
     // address: string;
     // location: {
     //     id: string,

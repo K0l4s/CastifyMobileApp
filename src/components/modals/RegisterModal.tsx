@@ -144,7 +144,7 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
         .toISOString()
         .split("T")[0] + "T00:00:00";
 
-      await AuthenticateService.register({ ...formData, birthday: localDateTime, isMobile: true, wardId: ward }, dispatch, navigation);
+      await AuthenticateService.register({ ...formData, birthday: localDateTime, appType: "CASTIFY", wardId: ward }, dispatch, navigation);
       onClose();
       // navigation.navigate("Verify", { email: formData.email });
     } catch (error) {
@@ -206,10 +206,13 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
             </>
           ) : (
             <>
-              <TextInput style={styles.input} placeholder="Address" placeholderTextColor="#aaa" value={formData.addressElements} onChangeText={(text) => handleInputChange("addressElements", text)} />
+              <TextInput style={[styles.input, { color: 'black' }]}  placeholder="Address" placeholderTextColor="#aaa" value={formData.addressElements} onChangeText={(text) => handleInputChange("addressElements", text)} />
               <Text style={styles.pickerLabel}>Province</Text>
               <View style={styles.pickerWrapper}>
-                <Picker onValueChange={setProvince}>
+                <Picker 
+                  onValueChange={setProvince}
+                  style={{ color: 'black' }}
+                >
                   <Picker.Item label="Select Province" value="" />
                   {provincesList.map(p => (
                     <Picker.Item key={p.id} label={p.name} value={p.id} />
@@ -219,7 +222,11 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
 
               <Text style={styles.pickerLabel}>District</Text>
               <View style={styles.pickerWrapper}>
-                <Picker onValueChange={setDistrict} enabled={!!province}>
+                <Picker 
+                  onValueChange={setDistrict} 
+                  enabled={!!province}
+                  style={{ color: 'black' }}
+                >
                   <Picker.Item label="Select District" value="" />
                   {districtsList.map(d => (
                     <Picker.Item key={d.id} label={d.name} value={d.id} />
@@ -229,7 +236,11 @@ const RegisterModal = ({ isOpen, onClose }: RegisterModalProps) => {
 
               <Text style={styles.pickerLabel}>Ward</Text>
               <View style={styles.pickerWrapper}>
-                <Picker onValueChange={setWard} enabled={!!district}>
+                <Picker 
+                  onValueChange={setWard} 
+                  enabled={!!district}
+                  style={{ color: 'black' }}
+                >
                   <Picker.Item label="Select Ward" value="" />
                   {wardsList.map(w => (
                     <Picker.Item key={w.id} label={w.name} value={w.id} />

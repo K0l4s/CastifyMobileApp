@@ -271,7 +271,7 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
     navigation.navigate('Profile', { username: podcast.user.username });
   };
 
-  if (!updatedPodcast || !userDetails) {
+  if (!updatedPodcast) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#000" />
@@ -348,7 +348,7 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
             <Image source={{ uri: podcast.user.avatarUrl }} style={styles.avatar} />
             <View>
               <Text style={styles.username} numberOfLines={2}>{podcast.user.fullname}</Text>
-              <Text style={styles.followers}>{CommonUtil.formatNumber(userDetails.totalFollower)} followers</Text>
+              <Text style={styles.followers}>{CommonUtil.formatNumber(podcast.user.totalFollower)} followers</Text>
             </View>
           </TouchableOpacity>
           {user?.id === podcast.user.id ? (
@@ -357,7 +357,9 @@ const PodcastScreen: React.FC<PodcastScreenProps> = ({ route, navigation }) => {
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={styles.followButton} onPress={handleFollow}>
-              <Text style={styles.followButtonText}>{userDetails.follow ? 'Unfollow' : 'Follow'}</Text>
+              <Text style={styles.followButtonText}>
+                {userDetails?.follow ? 'Unfollow' : 'Follow'}
+              </Text>
             </TouchableOpacity>
           )}
         </View>

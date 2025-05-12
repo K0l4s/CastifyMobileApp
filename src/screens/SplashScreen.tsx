@@ -28,7 +28,9 @@ const SplashScreen = () => {
           let data = await UserService.getUserByToken();
 
           const fullData = await UserService.getUserByUsername(data.username, true);
-          dispatch(setUser(fullData));
+          const { firstName, middleName, lastName } = splitFullName(fullData.fullname);
+
+           dispatch(setUser({ ...fullData, firstName, middleName, lastName }));
         } else {
           // If expired, call refresh token api
           const response = await AuthenticateService.refreshToken();
@@ -68,6 +70,14 @@ const SplashScreen = () => {
       <ActivityIndicator size="large" color="#0000ff" style={styles.loadingIcon}/>
     </View>
   );
+};
+
+const splitFullName = (fullname: string) => {
+  const parts = fullname.trim().split(' ');
+  const lastName = parts[0] || '';
+  const firstName = parts.length > 1 ? parts[parts.length - 1] : '';
+  const middleName = parts.slice(1, parts.length - 1).join(' ') || '';
+  return { firstName, middleName, lastName };
 };
 
 const styles = StyleSheet.create({

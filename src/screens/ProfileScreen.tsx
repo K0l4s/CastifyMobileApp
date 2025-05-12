@@ -8,14 +8,14 @@ import { RootParamList } from '../type/navigationType';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Podcast } from '../models/PodcastModel';
 import PodcastService from '../services/podcastService';
-import { FlatList } from 'react-native-gesture-handler';
+import { FlatList, RefreshControl, ScrollView } from 'react-native-gesture-handler';
 import PodcastItemMini from '../components/podcast/PodcastItemMini';
 import EditProfileModal from '../components/modals/EditProfileModal';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import CustomBottomSheet from '../components/common/OptionsBottomSheet';
 import AuthenticateService from '../services/authenticateService';
-import { logout } from '../redux/reducer/authSlice';
+import { logout, setUser, updateAvatar } from '../redux/reducer/authSlice';
 import { defaultAvatar, defaultCover } from '../utils/fileUtil';
 import Toast from 'react-native-toast-message';
 import UserService from '../services/userService';
@@ -29,7 +29,7 @@ const ProfileScreen: React.FC = () => {
   const isCurrentUser = !username || username === currentUser?.username;
   const dispatch = useDispatch();
   const navigation = useNavigation<StackNavigationProp<RootParamList>>();
-  const [user, setUser] = useState(currentUser);
+  const [user, setNewUser] = useState(currentUser);
   const [isFollowing, setIsFollowing] = useState(user?.follow || false);
   const [selectedTab, setSelectedTab] = useState('Video');
   const [myPodcasts, setMyPodcasts] = useState<Podcast[]>([]);
@@ -39,11 +39,21 @@ const ProfileScreen: React.FC = () => {
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
   const sheetRef = useRef<BottomSheet>(null);
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   const fullName = user?.fullname || `${user?.lastName || ''} ${user?.middleName || ''} ${user?.firstName || ''}`.trim();
   const avatarSource = user?.avatarUrl && user.avatarUrl !== '' ? { uri: user.avatarUrl } : defaultAvatar;
   const coverSource = user?.coverUrl && user.coverUrl !== '' ? { uri: user.coverUrl } : defaultCover;
 
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    const response = await UserService.getUserByUsername(user!.username, isAuthenticated);
+    setNewUser(response);
+    dispatch(setUser(response))
+    setIsRefreshing(false);
+  };
 
   useEffect(() => {
     if (!isCurrentUser) {
@@ -63,7 +73,7 @@ const ProfileScreen: React.FC = () => {
     try {
       setUserLoading(true);
       const response = await UserService.getUserByUsername(username, isAuthenticated);
-      setUser(response);
+      setNewUser(response);
     } catch (error) {
       console.error('Error fetching user profile:', error);
     } finally {
@@ -147,7 +157,7 @@ const ProfileScreen: React.FC = () => {
       await UserService.followUser(username || user?.username || '');
   
       // Toggle the follow state and update the UI
-      setUser((prev) => {
+      setNewUser((prev) => {
         if (!prev) return prev;
         return {
           ...prev,
@@ -201,6 +211,16 @@ const ProfileScreen: React.FC = () => {
               <Icon name="time-outline" size={24} color="#000" />
             </TouchableOpacity>
           )}
+
+          {isCurrentUser && (
+            <TouchableOpacity
+              style={styles.headerButton}
+              onPress={() => onRefresh()}
+            >
+              <Icon name="reload-outline" size={24} color="#000" />
+            </TouchableOpacity>
+          )}
+
           <TouchableOpacity style={styles.headerButton} onPress={() => setIsBottomSheetVisible(true)}>
             <Icon name="ellipsis-vertical" size={24} color="#000" />
           </TouchableOpacity>

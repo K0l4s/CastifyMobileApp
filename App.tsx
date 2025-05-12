@@ -83,9 +83,9 @@ const App = () => {
               <Stack.Screen name="AllFollowingUsers" component={AllFollowingUsersScreen} />
               <Stack.Screen name="ViewedHistory" component={ViewedHistory} />
             </Stack.Navigator>
-            <Toast />
           </NavigationContainer>
         </BottomSheetProvider>
+        <Toast />
       </GestureHandlerRootView>
     </Provider>
   );

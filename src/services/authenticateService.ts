@@ -55,7 +55,7 @@ class AuthenticateService {
       birthday: string;
       addressElements: string;
       username: string;
-      isMobile: boolean;
+      appType: string;
       wardId: string;
     },
     dispatch: AppDispatch,

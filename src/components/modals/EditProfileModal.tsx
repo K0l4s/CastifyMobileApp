@@ -38,9 +38,19 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [middleName, setMiddleName] = useState(user?.middleName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
-  const [birthday, setBirthday] = useState(
-    user?.birthday ? new Date(user.birthday) : new Date()
-  );
+  const [birthday, setBirthday] = useState(() => {
+    if (Array.isArray(user?.birthday)) {
+      // Chuyển đổi mảng thành đối tượng Date
+      return new Date(
+        user.birthday[0], // Năm
+        user.birthday[1] - 1, // Tháng (JavaScript sử dụng 0-11)
+        user.birthday[2], // Ngày
+        user.birthday[3] || 0, // Giờ
+        user.birthday[4] || 0 // Phút
+      );
+    }
+    return user?.birthday ? new Date(user.birthday) : new Date();
+  });
   const [address, setAddress] = useState(user?.address || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [avatar, setAvatar] = useState(user?.avatarUrl || '');
@@ -132,6 +142,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const handleSave = async () => {
     setLoading(true);
     try {
+      let avatarUrl = user?.avatarUrl;
+
       if (avatarFile) {
         const avatarResponse = await UserService.changeAvatar(avatarFile);
         dispatch(updateAvatar(avatarResponse.data.avatarUrl));
@@ -145,13 +157,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
         firstName,
         middleName,
         lastName,
-        birthday: birthdayLocalDateTime,
         wardId: wardId,
         ward: ward,
         district: district,
         provinces: province,
         phone: phone,
         addressElements: address,
+        avatarUrl
       };
 
       await UserService.updateUser(updatedUser);
@@ -219,8 +231,8 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               value={birthday.toDateString()}
               editable={false}
             />
-          </Pressable> */}
-          {/* <DatePicker
+          </Pressable>
+          <DatePicker
             modal
             mode="date"
             open={openDatePicker}
@@ -230,13 +242,13 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
               setBirthday(date);
             }}
             onCancel={() => setOpenDatePicker(false)}
-          />  */}
-          <TextInput style={styles.input} label="Address" value={address} onChangeText={setAddress} />
+          /> 
+          {/* <TextInput style={styles.input} label="Address" value={address} onChangeText={setAddress} /> */}
           <TextInput style={styles.input} label="Phone" value={phone} onChangeText={setPhone} />
 
           <Text style={styles.pickerLabel}>Province</Text>
           <View style={styles.pickerWrapper}>
-            <Picker selectedValue={province} onValueChange={setProvince}>
+            <Picker selectedValue={province} onValueChange={setProvince} style={{ color: 'black' }}>
               <Picker.Item label="Select Province" value="" />
               {provincesList.map(p => (
                 <Picker.Item key={p.id} label={p.name} value={p.id} />
@@ -246,7 +258,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
           <Text style={styles.pickerLabel}>District</Text>
           <View style={styles.pickerWrapper}>
-            <Picker selectedValue={user?.location.district.id} onValueChange={setDistrict} enabled={!!province}>
+            <Picker selectedValue={user?.location.district.id} onValueChange={setDistrict} enabled={!!province} style={{ color: 'black' }}>
               <Picker.Item label="Select District" value="" />
               {districtsList.map(d => (
                 <Picker.Item key={d.id} label={d.name} value={d.id} />
@@ -256,7 +268,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
           <Text style={styles.pickerLabel}>Ward</Text>
           <View style={styles.pickerWrapper}>
-            <Picker selectedValue={ward} onValueChange={setWard} enabled={!!district}>
+            <Picker selectedValue={ward} onValueChange={setWard} enabled={!!district} style={{ color: 'black' }}>
               <Picker.Item label="Select Ward" value="" />
               {wardsList.map(w => (
                 <Picker.Item key={w.id} label={w.name} value={w.id} />
@@ -264,7 +276,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({
             </Picker>
           </View>
 
-          <TextInput style={styles.input} label="Hamlet" value={hamlet} onChangeText={setHamlet} />
+          {/* <TextInput style={[styles.input, {color: 'black'}]} label="Hamlet" value={hamlet} onChangeText={setHamlet} /> */}
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity style={styles.buttonSave} onPress={handleSave} disabled={loading}>
